@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  // ---------- data ----------
+  // ================= Data =================
   const COURSES = window.COURSES.map(([code, title, grade, subject]) => ({ code, title, grade, subject }));
   const COURSE_BY_CODE = Object.fromEntries(COURSES.map(c => [c.code, c]));
   const UNI_BY_ID = Object.fromEntries(window.UNIVERSITIES.map(u => [u.id, u]));
@@ -9,29 +9,51 @@
   const PROGRAMS = window.PROGRAMS;
   const PROGRAM_BY_ID = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));
   const COMMUNITY = window.COMMUNITY || {};
-  const SUBJECTS = [...new Set(COURSES.map(c => c.subject))];
+  const SUBJECTS = [...new Set(COURSES.map(c => c.subject))].sort();
   const PROVINCES = { ON: "Ontario", BC: "British Columbia", AB: "Alberta", SK: "Saskatchewan", MB: "Manitoba", QC: "Quebec", NB: "New Brunswick", NS: "Nova Scotia", PE: "Prince Edward Island", NL: "Newfoundland and Labrador" };
-  const provincesPresent = Object.keys(PROVINCES).filter(k => window.UNIVERSITIES.some(u => u.province === k));
+  const PROVINCES_PRESENT = Object.keys(PROVINCES).filter(k => window.UNIVERSITIES.some(u => u.province === k));
   const UNIS_SORTED = [...window.UNIVERSITIES].sort((a, b) => a.name.localeCompare(b.name));
+  // The Grade 12 courses that show up most often as university prerequisites.
+  const QUICK_PICKS = ["ENG4U", "MHF4U", "MCV4U", "MDM4U", "SBI4U", "SCH4U", "SPH4U", "ICS4U"];
 
   const app = document.getElementById("app");
-  const STORE_KEY = "pahs.selected";
+  const Auth = window.Auth;
 
-  // ---------- state ----------
-  let selected = new Set(load());
-  function load() {
-    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]").filter(c => COURSE_BY_CODE[c]); }
-    catch { return []; }
-  }
-  function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify([...selected])); } catch { /* storage unavailable */ }
+  // ================= Storage helpers =================
+  const store = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+    set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ } }
+  };
+
+  // ================= Selected courses =================
+  let selected = new Set((store.get("pahs.selected", []) || []).filter(c => COURSE_BY_CODE[c]));
+  let saveTimer = null;
+  function saveSelected() {
+    store.set("pahs.selected", [...selected]);
+    if (Auth.enabled && Auth.current()) {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => Auth.saveCourses([...selected]).catch(() => {}), 600);
+    }
   }
 
-  // ---------- helpers ----------
+  // ================= Theme =================
+  function setTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem("pahs.theme", t); } catch { /* ignore */ }
+    syncThemeButtons();
+  }
+  function syncThemeButtons() {
+    const t = document.documentElement.getAttribute("data-theme");
+    document.querySelectorAll("[data-theme-btn]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.themeBtn === t)));
+  }
+  document.querySelectorAll("[data-theme-btn]").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.themeBtn)));
+  syncThemeButtons();
+
+  // ================= Helpers =================
   const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
   const courseLabel = code => COURSE_BY_CODE[code] ? `${code} – ${COURSE_BY_CODE[code].title}` : code;
+  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-  // Returns { eligible, missing: [descriptions] } for a program and a set of course codes.
   function check(program, have) {
     const missing = [];
     for (const code of program.req) if (!have.has(code)) missing.push(courseLabel(code));
@@ -41,148 +63,253 @@
     }
     return { eligible: missing.length === 0, missing };
   }
+  const avgText = p => p.avg ? `${p.avg[0]}–${p.avg[1]}%` : "No estimate yet";
 
-  function avgText(p) {
-    return p.avg ? `${p.avg[0]}–${p.avg[1]}%` : "Not collected yet";
+  // ================= Views =================
+  function viewHome() {
+    const uniCount = new Set(PROGRAMS.map(p => p.uni)).size;
+    app.innerHTML = `
+      <section class="landing-hero">
+        <div>
+          <span class="eyebrow">Free for Ontario students</span>
+          <h1>Find the university programs your courses open up.</h1>
+          <p class="lead">Pick the high school courses you're taking. We'll show every program in Canada you can apply to, with typical averages, what each program is like, and tips to strengthen your application.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#/courses">Get started</a>
+            <a class="btn" href="#/signup">Create an account</a>
+          </div>
+        </div>
+        ${heroArt()}
+      </section>
+
+      <section class="stats" aria-label="What's covered">
+        <div class="stat"><strong>${PROGRAMS.length}</strong><span>programs</span></div>
+        <div class="stat"><strong>${uniCount}</strong><span>universities</span></div>
+        <div class="stat"><strong>${PROVINCES_PRESENT.length}</strong><span>provinces</span></div>
+      </section>
+
+      <h2>How it works</h2>
+      <section class="steps">
+        <div class="step"><div class="num">1</div><h3>Pick your courses</h3><p>Search or tap the common Grade 12 courses you've taken or are taking.</p></div>
+        <div class="step"><div class="num">2</div><h3>See your options</h3><p>Get every program you meet the prerequisites for, sorted by major.</p></div>
+        <div class="step"><div class="num">3</div><h3>Compare programs</h3><p>Check averages, careers, campus life and extracurricular ideas.</p></div>
+      </section>
+
+      <section class="cta">
+        <a class="btn primary" href="#/courses">Choose my courses</a>
+      </section>`;
   }
 
-  // ---------- views ----------
+  function heroArt() {
+    return `
+      <svg class="hero-art" viewBox="0 0 400 300" role="img" aria-label="A path leading from a high school to a university">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--accent-soft)"/>
+            <stop offset="1" stop-color="var(--surface)"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="400" height="300" rx="24" fill="url(#sky)" stroke="var(--border)"/>
+        <circle cx="320" cy="62" r="26" fill="var(--accent)" opacity=".18"/>
+        <circle cx="70" cy="50" r="3" fill="var(--accent)" opacity=".5"/>
+        <circle cx="120" cy="80" r="2" fill="var(--accent)" opacity=".5"/>
+        <circle cx="250" cy="40" r="2.5" fill="var(--accent)" opacity=".5"/>
+        <path d="M0 230 Q 100 190 200 220 T 400 205 V300 H0z" fill="var(--accent)" opacity=".10"/>
+        <path d="M60 268 C 120 250, 110 200, 180 196 S 260 170, 300 130" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="1 22" opacity=".9"/>
+        <!-- high school -->
+        <g transform="translate(22 205)">
+          <rect x="0" y="22" width="76" height="48" rx="4" fill="var(--surface)" stroke="var(--text)" stroke-width="2.5"/>
+          <path d="M-4 24 L38 0 L80 24z" fill="var(--surface)" stroke="var(--text)" stroke-width="2.5" stroke-linejoin="round"/>
+          <rect x="30" y="44" width="16" height="26" fill="var(--accent)" opacity=".75"/>
+          <rect x="10" y="34" width="12" height="10" fill="var(--accent-soft)" stroke="var(--text)" stroke-width="1.5"/>
+          <rect x="54" y="34" width="12" height="10" fill="var(--accent-soft)" stroke="var(--text)" stroke-width="1.5"/>
+        </g>
+        <!-- university -->
+        <g transform="translate(262 60)">
+          <path d="M0 40 L54 12 L108 40z" fill="var(--surface)" stroke="var(--text)" stroke-width="2.5" stroke-linejoin="round"/>
+          <rect x="4" y="40" width="100" height="8" fill="var(--surface)" stroke="var(--text)" stroke-width="2.5"/>
+          <g fill="var(--surface)" stroke="var(--text)" stroke-width="2.5">
+            <rect x="12" y="48" width="10" height="40"/><rect x="34" y="48" width="10" height="40"/>
+            <rect x="64" y="48" width="10" height="40"/><rect x="86" y="48" width="10" height="40"/>
+          </g>
+          <rect x="0" y="88" width="108" height="10" rx="2" fill="var(--surface)" stroke="var(--text)" stroke-width="2.5"/>
+        </g>
+        <!-- grad cap -->
+        <g transform="translate(150 150) rotate(-12)">
+          <path d="M0 14 L30 0 L60 14 L30 28z" fill="var(--text)"/>
+          <path d="M14 20 v10 c0 5 32 5 32 0 v-10 l-16 8z" fill="var(--text)" opacity=".85"/>
+          <path d="M56 16 v16" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="56" cy="34" r="4" fill="var(--accent)"/>
+        </g>
+      </svg>`;
+  }
+
   function viewCourses() {
-    let q = "", grade = "all", subject = "all";
+    let q = "", grade = "12", subject = "all";
 
     app.innerHTML = `
-      <section class="hero">
-        <h1>Which university programs can you apply to?</h1>
-        <p>Search for the Ontario high school courses you've taken or are taking, select them all, then press <strong>Show my programs</strong>.</p>
+      <section class="page-head">
+        <h1>Your courses</h1>
+        <p>Select every course you've taken or are taking. University prerequisites are almost always Grade 12 courses ending in 4U or 4M.</p>
       </section>
-      <section class="picker">
-        <div class="controls">
-          <input id="q" type="search" placeholder="Search by course code or name, e.g. MHF4U or Biology" autocomplete="off" aria-label="Search courses">
+      <p class="quick-label">Most common prerequisites — tap to add:</p>
+      <div class="quick" id="quick"></div>
+      <div class="search-row">
+        <label class="visually-hidden" for="q">Search courses</label>
+        <input id="q" type="search" placeholder="Search, e.g. Biology or SBI4U" autocomplete="off" enterkeyhint="search">
+        <div class="filter-row">
           <select id="grade" aria-label="Grade">
-            <option value="all">All grades</option>
             <option value="12">Grade 12</option><option value="11">Grade 11</option>
             <option value="10">Grade 10</option><option value="9">Grade 9</option>
+            <option value="all">All grades</option>
           </select>
           <select id="subject" aria-label="Subject">
             <option value="all">All subjects</option>
             ${SUBJECTS.map(s => `<option>${esc(s)}</option>`).join("")}
           </select>
         </div>
-        <div class="hint">Tip: university prerequisites are almost always Grade 12 U or M courses (codes ending in 4U or 4M).</div>
-        <div id="list" class="course-list" role="list"></div>
-      </section>
-      <aside class="tray">
-        <div class="tray-head"><strong id="count"></strong> <button id="clear" class="link">Clear all</button></div>
-        <div id="chips" class="chips"></div>
-        <button id="go" class="primary">Show my programs →</button>
-      </aside>`;
+      </div>
+      <div id="list" class="course-list"></div>
+      <div class="tray">
+        <div class="tray-inner">
+          <div class="tray-info">
+            <div class="tray-count" id="count"></div>
+            <div class="chips" id="chips"></div>
+          </div>
+          <button id="go" class="btn primary">See programs</button>
+        </div>
+      </div>`;
 
     const list = app.querySelector("#list");
     const chips = app.querySelector("#chips");
+    const quick = app.querySelector("#quick");
 
+    function renderQuick() {
+      quick.innerHTML = QUICK_PICKS.map(code =>
+        `<button class="pill" data-code="${code}" aria-pressed="${selected.has(code)}" title="${esc(courseLabel(code))}">${code}</button>`).join("");
+    }
     function renderList() {
       const term = q.trim().toLowerCase();
       const rows = COURSES.filter(c =>
-        (grade === "all" || String(c.grade) === grade) &&
+        (term ? true : (grade === "all" || String(c.grade) === grade)) &&
         (subject === "all" || c.subject === subject) &&
         (!term || c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term) || c.subject.toLowerCase().includes(term))
       ).sort((a, b) => b.grade - a.grade || a.subject.localeCompare(b.subject) || a.code.localeCompare(b.code));
 
       list.innerHTML = rows.length ? rows.map(c => `
-        <label class="course ${selected.has(c.code) ? "on" : ""}" role="listitem">
+        <label class="course ${selected.has(c.code) ? "on" : ""}">
           <input type="checkbox" value="${c.code}" ${selected.has(c.code) ? "checked" : ""}>
-          <span class="code">${c.code}</span>
-          <span class="title">${esc(c.title)}</span>
-          <span class="meta">Gr ${c.grade} · ${esc(c.subject)}</span>
+          <span class="txt">
+            <span class="title"><span class="code">${c.code}</span> · ${esc(c.title)}</span>
+            <span class="meta">Grade ${c.grade} · ${esc(c.subject)}</span>
+          </span>
         </label>`).join("") : `<p class="empty">No courses match that search.</p>`;
     }
-
     function renderTray() {
-      app.querySelector("#count").textContent = `${selected.size} course${selected.size === 1 ? "" : "s"} selected`;
+      app.querySelector("#count").textContent = selected.size ? plural(selected.size, "course") + " selected" : "No courses selected yet";
       chips.innerHTML = [...selected].sort().map(code =>
-        `<button class="chip" data-code="${code}" title="Remove ${esc(courseLabel(code))}">${code} ✕</button>`).join("");
+        `<button class="chip" data-code="${code}" aria-label="Remove ${esc(courseLabel(code))}">${code} ✕</button>`).join("");
       app.querySelector("#go").disabled = selected.size === 0;
+    }
+    function toggle(code, on) {
+      on ? selected.add(code) : selected.delete(code);
+      saveSelected(); renderTray(); renderQuick();
     }
 
     list.addEventListener("change", e => {
       const box = e.target;
       if (box.type !== "checkbox") return;
-      box.checked ? selected.add(box.value) : selected.delete(box.value);
       box.closest(".course").classList.toggle("on", box.checked);
-      save(); renderTray();
+      toggle(box.value, box.checked);
+    });
+    quick.addEventListener("click", e => {
+      const code = e.target.closest("[data-code]")?.dataset.code;
+      if (!code) return;
+      toggle(code, !selected.has(code)); renderList();
     });
     chips.addEventListener("click", e => {
-      const code = e.target.dataset.code;
+      const code = e.target.closest("[data-code]")?.dataset.code;
       if (!code) return;
-      selected.delete(code); save(); renderTray(); renderList();
+      toggle(code, false); renderList();
     });
     app.querySelector("#q").addEventListener("input", e => { q = e.target.value; renderList(); });
     app.querySelector("#grade").addEventListener("change", e => { grade = e.target.value; renderList(); });
     app.querySelector("#subject").addEventListener("change", e => { subject = e.target.value; renderList(); });
-    app.querySelector("#clear").addEventListener("click", () => { selected.clear(); save(); renderTray(); renderList(); });
     app.querySelector("#go").addEventListener("click", () => { location.hash = "#/results"; });
 
-    renderList(); renderTray();
-    app.querySelector("#q").focus();
+    renderQuick(); renderList(); renderTray();
   }
 
   function viewResults() {
     if (selected.size === 0) {
-      app.innerHTML = `<section class="hero"><h1>No courses selected yet</h1><p><a href="#/">Pick your courses first →</a></p></section>`;
+      app.innerHTML = `
+        <section class="page-head">
+          <h1>No courses yet</h1>
+          <p>Pick your courses first and we'll show which programs you can apply to.</p>
+          <a class="btn primary" href="#/courses">Choose my courses</a>
+        </section>`;
       return;
     }
     const results = PROGRAMS.map(p => ({ p, r: check(p, selected) }));
     const eligible = results.filter(x => x.r.eligible);
     const close = results.filter(x => !x.r.eligible && x.r.missing.length === 1);
-
     let fieldFilter = "all", uniFilter = "all", provFilter = "all", q = "", showClose = false;
 
     app.innerHTML = `
-      <section class="hero">
-        <h1>You can apply to <span class="big">${eligible.length}</span> program${eligible.length === 1 ? "" : "s"}</h1>
-        <p>Based on ${selected.size} selected course${selected.size === 1 ? "" : "s"} · <a href="#/">edit courses</a>.
-        Meeting prerequisites means you <em>can apply</em> — admission also depends on your marks and, for some programs, a supplementary application.</p>
+      <section class="page-head">
+        <h1>You can apply to ${plural(eligible.length, "program")}</h1>
+        <p>Based on ${plural(selected.size, "course")} · <a href="#/courses">Edit courses</a></p>
       </section>
-      <div class="controls">
-        <input id="q" type="search" placeholder="Search programs or universities" aria-label="Search programs">
-        <select id="field" aria-label="Major / field">
-          <option value="all">All majors</option>
-          ${Object.entries(FIELDS).map(([k, f]) => `<option value="${k}">${esc(f.name)}</option>`).join("")}
-        </select>
-        <select id="prov" aria-label="Province">
-          <option value="all">All provinces</option>
-          ${provincesPresent.map(k => `<option value="${k}">${esc(PROVINCES[k])}</option>`).join("")}
-        </select>
-        <select id="uni" aria-label="University">
-          <option value="all">All universities</option>
-          ${UNIS_SORTED.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("")}
-        </select>
-        <label class="toggle"><input id="close" type="checkbox"> Also show programs I'm 1 course away from (${close.length})</label>
+      <div class="results-bar">
+        <label class="visually-hidden" for="q">Search programs</label>
+        <input id="q" type="search" placeholder="Search programs or schools" enterkeyhint="search">
       </div>
+      <details class="filters">
+        <summary class="btn">Filters</summary>
+        <div class="filter-grid">
+          <select id="field" aria-label="Major">
+            <option value="all">All majors</option>
+            ${Object.entries(FIELDS).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, f]) => `<option value="${k}">${esc(f.name)}</option>`).join("")}
+          </select>
+          <select id="prov" aria-label="Province">
+            <option value="all">All provinces</option>
+            ${PROVINCES_PRESENT.map(k => `<option value="${k}">${esc(PROVINCES[k])}</option>`).join("")}
+          </select>
+          <select id="uni" aria-label="University">
+            <option value="all">All universities</option>
+            ${UNIS_SORTED.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("")}
+          </select>
+        </div>
+        <label class="toggle"><input id="close" type="checkbox"> Also show programs I'm one course away from (${close.length})</label>
+      </details>
+      <p class="small muted">Having the courses means you can apply. Getting in also depends on your marks and, for some programs, a supplementary application.</p>
       <div id="out"></div>`;
 
     const out = app.querySelector("#out");
     function render() {
       const term = q.trim().toLowerCase();
       const pool = showClose ? eligible.concat(close) : eligible;
-      const rows = pool.filter(({ p }) =>
-        (fieldFilter === "all" || p.field === fieldFilter) &&
-        (uniFilter === "all" || p.uni === uniFilter) &&
-        (provFilter === "all" || UNI_BY_ID[p.uni].province === provFilter) &&
-        (!term || p.name.toLowerCase().includes(term) || UNI_BY_ID[p.uni].name.toLowerCase().includes(term) || FIELDS[p.field].name.toLowerCase().includes(term)));
+      const rows = pool.filter(({ p }) => {
+        const u = UNI_BY_ID[p.uni];
+        return (fieldFilter === "all" || p.field === fieldFilter) &&
+          (uniFilter === "all" || p.uni === uniFilter) &&
+          (provFilter === "all" || u.province === provFilter) &&
+          (!term || p.name.toLowerCase().includes(term) || u.name.toLowerCase().includes(term) || FIELDS[p.field].name.toLowerCase().includes(term));
+      });
       if (!rows.length) { out.innerHTML = `<p class="empty">No programs match these filters.</p>`; return; }
 
       const byField = {};
       for (const row of rows) (byField[row.p.field] ||= []).push(row);
       out.innerHTML = Object.keys(byField).sort((a, b) => FIELDS[a].name.localeCompare(FIELDS[b].name)).map(f => `
         <section class="field-group">
-          <h2>${esc(FIELDS[f].name)} <span class="muted">(${byField[f].length})</span></h2>
+          <h2>${esc(FIELDS[f].name)} <span class="small muted">${byField[f].length}</span></h2>
           <div class="cards">
             ${byField[f].sort((a, b) => UNI_BY_ID[a.p.uni].name.localeCompare(UNI_BY_ID[b.p.uni].name)).map(({ p, r }) => `
               <a class="card ${r.eligible ? "" : "almost"}" href="#/program/${p.id}">
                 <span class="uni">${esc(UNI_BY_ID[p.uni].name)} · ${UNI_BY_ID[p.uni].province}</span>
                 <span class="pname">${esc(p.name)}</span>
-                <span class="meta">${esc(p.degree)} · ${p.avg ? "Est. average " + avgText(p) : "No average estimate yet"}${p.supp ? " · Supplementary app" : ""}</span>
+                <span class="meta">${esc(p.degree)} · ${p.avg ? "Avg. est. " + avgText(p) : "No average estimate yet"}</span>
+                ${p.supp ? `<span><span class="badge">Extra application</span></span>` : ""}
                 ${r.eligible ? "" : `<span class="missing">Missing: ${esc(r.missing[0])}</span>`}
               </a>`).join("")}
           </div>
@@ -199,7 +326,7 @@
 
   function viewProgram(id) {
     const p = PROGRAM_BY_ID[id];
-    if (!p) { app.innerHTML = `<section class="hero"><h1>Program not found</h1><p><a href="#/results">Back to results</a></p></section>`; return; }
+    if (!p) { app.innerHTML = `<section class="page-head"><h1>Program not found</h1><a href="#/results">Back to my programs</a></section>`; return; }
     const u = UNI_BY_ID[p.uni];
     const f = FIELDS[p.field];
     const r = check(p, selected);
@@ -215,37 +342,36 @@
     ].join("") || "<li>No specific course prerequisites listed.</li>";
 
     app.innerHTML = `
-      <p><a href="#/results">← Back to my programs</a></p>
-      <section class="hero program-hero">
-        <span class="uni">${esc(u.name)}</span>
+      <a class="back" href="#/results">← My programs</a>
+      <section class="page-head program-head">
+        <div class="uni">${esc(u.name)} · ${esc(u.city)}</div>
         <h1>${esc(p.name)}</h1>
-        <p class="muted">${esc(p.degree)} · ${esc(f.name)} · ${esc(u.city)}</p>
-        <p class="status ${r.eligible ? "ok" : "no"}">${r.eligible ? "✓ You have the prerequisite courses for this program." : "✗ You're missing: " + esc(r.missing.join("; "))}</p>
+        <p class="muted">${esc(p.degree)} · ${esc(f.name)}</p>
+        <div class="status ${r.eligible ? "ok" : "no"}">${r.eligible ? "✓ You have the required courses" : "✗ Missing: " + esc(r.missing.join("; "))}</div>
       </section>
 
       <div class="grid">
         <section class="panel">
           <h2>Admission average</h2>
           <p class="avg">${avgText(p)}</p>
-          <p class="small muted">${p.avg ? "Approximate typical range of admitted students' top-6 averages. This is an estimate, not an official cutoff — ranges move every year and competitive programs often admit above it." : "No estimate collected yet for this program."}</p>
-          <h3>Student-reported marks</h3>
-          ${comm.averages.length ? `<ul class="reports">${comm.averages.map(a => `<li><strong>${esc(a.value)}</strong> ${a.outcome ? "· " + esc(a.outcome) : ""} ${a.year ? "· " + esc(a.year) : ""} · <a href="${esc(a.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
-            : `<p class="small">None collected yet. You can browse what students have posted for this program on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
-          ${p.supp ? `<h3>Supplementary application</h3><p>${esc(p.supp)}</p>` : ""}
+          <p class="small muted">${p.avg ? "Estimated typical top-6 average of admitted students. Not an official cutoff — it changes every year." : "We don't have an estimate for this program yet."}</p>
+          <h3>Marks reported by students</h3>
+          ${comm.averages.length ? `<ul>${comm.averages.map(a => `<li><strong>${esc(a.value)}</strong>${a.outcome ? " · " + esc(a.outcome) : ""}${a.year ? " · " + esc(a.year) : ""} · <a href="${esc(a.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
+            : `<p class="small">None collected yet. See what students posted on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
+          ${p.supp ? `<h3>Extra application</h3><p>${esc(p.supp)}</p>` : ""}
         </section>
-
         <section class="panel">
-          <h2>Required high school courses</h2>
+          <h2>Required courses</h2>
           <ul class="reqs">${reqRows}</ul>
-          <p class="small muted">Most programs also need six Grade 12 U/M courses in total. <a href="${esc(u.admissions)}" target="_blank" rel="noopener">Confirm on ${esc(u.name)}'s admissions site</a>.</p>
+          <p class="small muted" style="margin-top:10px">You'll also need six Grade 12 U/M courses in total. <a href="${esc(u.admissions)}" target="_blank" rel="noopener">Confirm on the official site</a>.</p>
         </section>
       </div>
 
       <section class="panel">
-        <h2>About the program</h2>
+        <h2>About this program</h2>
         <p>${esc(f.about)}</p>
         ${p.note ? `<p>${esc(p.note)}</p>` : ""}
-        <h3>Jobs this can lead to</h3>
+        <h3>Where it can lead</h3>
         <ul class="tags">${f.jobs.map(j => `<li>${esc(j)}</li>`).join("")}</ul>
       </section>
 
@@ -258,20 +384,20 @@
           <dt>Founded</dt><dd>${u.founded}</dd>
         </dl>
         <p>${esc(u.about)}</p>
-        <h3>How student-friendly is it?</h3>
+        <h3>Student life</h3>
         <ul>${u.life.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
-        <p class="small"><a href="${esc(u.website)}" target="_blank" rel="noopener">Official website</a></p>
+        <p class="small" style="margin-top:10px"><a href="${esc(u.website)}" target="_blank" rel="noopener">Visit the official website</a></p>
       </section>
 
       <section class="panel">
-        <button id="ecBtn" class="primary" aria-expanded="false" aria-controls="ecs">Best supplementary extracurriculars</button>
+        <button id="ecBtn" class="btn primary block" aria-expanded="false" aria-controls="ecs">Best supplementary extracurriculars</button>
         <div id="ecs" hidden>
           <h3>What admitted students listed</h3>
-          ${comm.ecs.length ? `<ul class="reports">${comm.ecs.map(e => `<li>${esc(e.text)} ${e.outcome ? "<em>(" + esc(e.outcome) + ")</em>" : ""} · <a href="${esc(e.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
-            : `<p class="small">No sourced student examples collected for this program yet. See what students have shared on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
-          <h3>Extracurriculars that commonly strengthen ${esc(f.name)} applications</h3>
+          ${comm.ecs.length ? `<ul>${comm.ecs.map(e => `<li>${esc(e.text)}${e.outcome ? " <em>(" + esc(e.outcome) + ")</em>" : ""} · <a href="${esc(e.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
+            : `<p class="small">No student examples collected for this program yet. See what students shared on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
+          <h3>Ideas that help ${esc(f.name)} applications</h3>
           <ul>${f.ecs.map(e => `<li>${esc(e)}</li>`).join("")}</ul>
-          <p class="small muted">Quality beats quantity: a few activities you stuck with, led, or built something in usually count more than a long list. ${p.supp ? "This program has a supplementary application, which is where these activities are reviewed." : ""}</p>
+          <p class="small muted" style="margin-top:10px">A few activities you stuck with, led, or built something in usually count more than a long list.${p.supp ? " This program has an extra application, which is where these activities are reviewed." : ""}</p>
         </div>
       </section>`;
 
@@ -283,37 +409,120 @@
     });
   }
 
+  // ---------- Auth views ----------
+  const notEnabled = `<div class="notice">Accounts aren't switched on yet. You can still use everything — your courses are saved on this device.</div>`;
+
+  function authForm(kind) {
+    const isSignup = kind === "signup";
+    app.innerHTML = `
+      <div class="auth-wrap">
+        <form class="auth-card" id="authForm" novalidate>
+          <h1>${isSignup ? "Create your account" : "Welcome back"}</h1>
+          <p class="muted">${isSignup ? "Save your courses and see them on any device." : "Log in to see your saved courses."}</p>
+          ${Auth.enabled ? "" : notEnabled}
+          ${isSignup ? `<div class="field"><label for="name">First name</label><input id="name" type="text" autocomplete="given-name" required></div>` : ""}
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" inputmode="email" required></div>
+          <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="${isSignup ? "new-password" : "current-password"}" minlength="6" required>
+            ${isSignup ? `<span class="small muted">At least 6 characters.</span>` : ""}</div>
+          <p class="error" id="err" role="alert"></p>
+          <button class="btn primary block" type="submit" ${Auth.enabled ? "" : "disabled"}>${isSignup ? "Sign up" : "Log in"}</button>
+          ${isSignup ? "" : `<p class="switch-auth"><button type="button" class="link-btn" id="forgot" ${Auth.enabled ? "" : "disabled"}>Forgot password?</button></p>`}
+          <p class="switch-auth">${isSignup ? `Already have an account? <a href="#/login">Log in</a>` : `New here? <a href="#/signup">Create an account</a>`}</p>
+        </form>
+      </div>`;
+
+    const form = app.querySelector("#authForm");
+    const err = app.querySelector("#err");
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      err.textContent = "";
+      const email = form.querySelector("#email").value.trim();
+      const pw = form.querySelector("#pw").value;
+      if (!email || !pw) { err.textContent = "Please fill in your email and password."; return; }
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      try {
+        if (isSignup) await Auth.signUp(form.querySelector("#name").value.trim(), email, pw);
+        else await Auth.logIn(email, pw);
+        await syncFromCloud();
+        location.hash = "#/account";
+      } catch (ex) {
+        err.textContent = Auth.friendly(ex);
+        btn.disabled = false;
+      }
+    });
+    const forgot = app.querySelector("#forgot");
+    if (forgot) forgot.addEventListener("click", async () => {
+      const email = form.querySelector("#email").value.trim();
+      if (!email) { err.textContent = "Type your email above first."; return; }
+      try { await Auth.resetPassword(email); err.textContent = "Check your email for a reset link."; }
+      catch (ex) { err.textContent = Auth.friendly(ex); }
+    });
+  }
+
+  function viewAccount() {
+    const user = Auth.enabled && Auth.current();
+    if (!user) { authForm("login"); return; }
+    app.innerHTML = `
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <h1>Hi${user.displayName ? ", " + esc(user.displayName) : ""}</h1>
+          <p class="muted">${esc(user.email)}</p>
+          <p>Your ${plural(selected.size, "course")} are saved to your account.</p>
+          <a class="btn primary block" href="#/results">See my programs</a>
+          <p class="switch-auth"><button class="link-btn" id="logout">Log out</button></p>
+        </div>
+      </div>`;
+    app.querySelector("#logout").addEventListener("click", async () => { await Auth.logOut(); location.hash = "#/login"; });
+  }
+
+  async function syncFromCloud() {
+    if (!Auth.enabled || !Auth.current()) return;
+    try {
+      const cloud = await Auth.loadCourses();
+      if (cloud) cloud.filter(c => COURSE_BY_CODE[c]).forEach(c => selected.add(c));
+      saveSelected();
+    } catch { /* offline or rules not set; keep local copy */ }
+  }
+
   function viewAbout() {
     const uniCount = new Set(PROGRAMS.map(p => p.uni)).size;
     app.innerHTML = `
-      <section class="hero"><h1>About the data</h1></section>
+      <section class="page-head"><h1>About the data</h1></section>
       <section class="panel">
-        <p>This site currently covers <strong>${PROGRAMS.length} programs</strong> at <strong>${uniCount} universities</strong> in ${provincesPresent.length} provinces, and <strong>${COURSES.length} Ontario high school courses</strong>. It focuses on the main programs at each school; more programs are added over time.</p>
-        <p>For universities outside Ontario, requirements are shown as the Ontario courses an Ontario applicant needs. Out-of-province schools also look at your overall top-6 average, and Quebec schools charge higher tuition to students from other provinces.</p>
+        <p>This site covers <strong>${PROGRAMS.length} programs</strong> at <strong>${uniCount} universities</strong> in ${PROVINCES_PRESENT.length} provinces, and <strong>${COURSES.length} Ontario high school courses</strong>. It focuses on the main programs at each school.</p>
         <h3>Where it comes from</h3>
         <ul>
-          <li><strong>High school courses:</strong> Ontario Ministry of Education course codes.</li>
-          <li><strong>Prerequisites:</strong> compiled from university admissions information. Requirements change yearly, so every program page links to the official site.</li>
-          <li><strong>Admission averages:</strong> approximate estimates, clearly labelled. They are not official cutoffs.</li>
-          <li><strong>Student reports:</strong> marks and extracurriculars shared by students, each with a link to the original post. This section is still being collected.</li>
-          <li><strong>Extracurricular ideas:</strong> general guidance for each field, not quotes from specific students.</li>
+          <li><strong>Courses:</strong> Ontario Ministry of Education course codes.</li>
+          <li><strong>Prerequisites:</strong> compiled from university admissions information and shown as Ontario courses. Every program page links to the official site.</li>
+          <li><strong>Averages:</strong> approximate estimates, not official cutoffs.</li>
+          <li><strong>Student reports:</strong> only shown with a link to the original post.</li>
+          <li><strong>Extracurricular ideas:</strong> general guidance for each field.</li>
         </ul>
-        <p>Spot a mistake? Open an issue on the project's GitHub repository.</p>
       </section>`;
   }
 
-  // ---------- router ----------
+  // ================= Router =================
   function route() {
     const h = location.hash.replace(/^#\/?/, "");
     const [page, arg] = h.split("/");
-    if (page === "results") viewResults();
+    if (page === "courses") viewCourses();
+    else if (page === "results") viewResults();
     else if (page === "program") viewProgram(decodeURIComponent(arg || ""));
     else if (page === "about") viewAbout();
-    else viewCourses();
-    document.querySelectorAll(".site-header nav a").forEach(a =>
-      a.classList.toggle("active", a.getAttribute("href") === "#/" + (page || "")));
+    else if (page === "signup") (Auth.enabled && Auth.current()) ? viewAccount() : authForm("signup");
+    else if (page === "login" || page === "account") viewAccount();
+    else viewHome();
+
+    const active = page === "program" ? "results" : (page === "signup" || page === "account") ? "login" : (page || "");
+    document.querySelectorAll("[data-route]").forEach(a => a.classList.toggle("active", a.dataset.route === active));
+    const loggedIn = Auth.enabled && Auth.current();
+    document.querySelectorAll('.top-nav [data-route="login"]').forEach(a => { a.textContent = loggedIn ? "Account" : "Log in"; });
     window.scrollTo(0, 0);
   }
+
   window.addEventListener("hashchange", route);
+  Auth.ready.then(syncFromCloud).catch(() => {}).finally(route);
+  if (Auth.enabled) Auth.onChange(() => route());
   route();
 })();

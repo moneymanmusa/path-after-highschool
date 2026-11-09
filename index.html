@@ -2,24 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Path After High School</title>
   <meta name="description" content="Pick the Ontario high school courses you've taken and see which Canadian university programs you can apply to.">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("pahs.theme"); } catch (e) {}
+      if (t !== "light" && t !== "dark" && t !== "blur") {
+        t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#/">Path After High School</a>
-    <nav>
-      <a href="#/">My courses</a>
-      <a href="#/results">My programs</a>
-      <a href="#/about">About the data</a>
+    <a class="brand" href="#/">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M6 13l10-5 10 5-10 5z" fill="var(--accent-text)"/><path d="M10 15v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5l-6 3z" fill="var(--accent-text)" opacity=".8"/></svg>
+      <span>Path After High School</span>
+    </a>
+    <nav class="top-nav" aria-label="Main">
+      <a href="#/" data-route="">Home</a>
+      <a href="#/courses" data-route="courses">My courses</a>
+      <a href="#/results" data-route="results">My programs</a>
+      <a href="#/login" data-route="login">Log in</a>
     </nav>
+    <div class="theme-switch" role="group" aria-label="Theme">
+      <button type="button" data-theme-btn="light" aria-label="Light theme" title="Light">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button type="button" data-theme-btn="dark" aria-label="Dark theme" title="Dark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button type="button" data-theme-btn="blur" aria-label="Blur theme" title="Blur">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+      </button>
+    </div>
   </header>
+
   <main id="app" tabindex="-1"></main>
+
   <footer class="site-footer">
     Admission requirements change every year. Always confirm on the university's official site before applying.
+    · <a href="#/about">About the data</a>
   </footer>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="#/" data-route="">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home
+    </a>
+    <a href="#/courses" data-route="courses">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Courses
+    </a>
+    <a href="#/results" data-route="results">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>Programs
+    </a>
+    <a href="#/login" data-route="login">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Account
+    </a>
+  </nav>
+
   <script src="data/courses.js"></script>
   <script src="data/fields.js"></script>
   <script src="data/universities.js"></script>
@@ -27,6 +72,8 @@
   <script src="data/programs.js"></script>
   <script src="data/programs-canada.js"></script>
   <script src="data/community.js"></script>
+  <script src="auth-config.js"></script>
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

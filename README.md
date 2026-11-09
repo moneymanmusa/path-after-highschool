@@ -23,6 +23,21 @@ Then visit http://localhost:8000.
 | `data/community.js` | Student-reported marks and extracurriculars, each with a source link |
 | `app.js`, `styles.css`, `index.html` | The website |
 
+## Accounts (optional)
+
+Sign-up and login use Firebase Authentication, and saved courses are stored in Firestore. Until `auth-config.js` has a Firebase config, the account pages show a notice and everything else works without an account. Setup steps are in `auth-config.js`. Use these Firestore rules so each student can only read and write their own data:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
 ## Coverage
 
 - **Wave 1:** Ontario universities and their main undergraduate programs (`universities.js`, `programs.js`).

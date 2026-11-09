@@ -67,7 +67,7 @@
   P("waterloo", "Kinesiology", "BSc", "kinesiology", ["ENG4U", "SBI4U", "SCH4U"], [ONE_MATH], [80, 85]);
   P("waterloo", "Life Sciences", "BSc", "life_sci", ["ENG4U", "MHF4U", "SBI4U", "SCH4U"], [[1, ["MCV4U", "MDM4U", "SPH4U"]]], [83, 88]);
   P("waterloo", "Honours Science", "BSc", "physical_sci", ["ENG4U", "MHF4U"], [[2, ["SBI4U", "SCH4U", "SPH4U", "MCV4U", "SES4U"]]], [82, 87]);
-  P("waterloo", "Pharmacy", "PharmD", "pharmacy", ["ENG4U", "MHF4U", "MCV4U", "SBI4U", "SCH4U"], [], [85, 90], { supp: "Admission Information Form; interview/assessment", note: "Waterloo is one of the few Canadian pharmacy schools that admits directly from high school." });
+  P("waterloo", "Pharmacy", "PharmD", "pharmacy", ["ENG4U", "MHF4U", "MCV4U", "SBI4U", "SCH4U"], [], [85, 90], { supp: "Admission Information Form; interview/assessment", note: "Waterloo's pharmacy program admits students directly from high school." });
   P("waterloo", "Architecture", "BAS", "architecture", ["ENG4U"], [[1, ["MHF4U", "MCV4U"]]], [85, 90], { supp: "Admission Information Form plus portfolio/interview" });
   P("waterloo", "Honours Arts", "BA", "general_arts", ["ENG4U"], [], [78, 83]);
   P("waterloo", "Environment and Business", "BES", "env_sci", ["ENG4U"], [ONE_MATH], [80, 85]);
@@ -75,7 +75,7 @@
 
   // ---------------- McMaster University ----------------
   P("mcmaster", "Engineering I", "BEng", "engineering", ENGR, [], [90, 94], { supp: "Online Supplementary Application (required)" });
-  P("mcmaster", "Health Sciences (BHSc)", "BHSc", "health_sci", ["ENG4U", "SBI4U", "SCH4U"], [], [93, 98], { supp: "Supplementary application (heavily weighted)", note: "One of the most competitive undergraduate programs in Canada; the supplementary application matters as much as marks." });
+  P("mcmaster", "Health Sciences (BHSc)", "BHSc", "health_sci", ["ENG4U", "SBI4U", "SCH4U"], [], [93, 98], { supp: "Supplementary application (heavily weighted)", note: "A highly competitive program; the supplementary application is a major part of the decision." });
   P("mcmaster", "Life Sciences (Science I)", "BSc", "life_sci", ["ENG4U", "MCV4U", "SBI4U", "SCH4U"], [], [87, 92]);
   P("mcmaster", "Science I (Gateway)", "BSc", "physical_sci", ["ENG4U", "MCV4U"], [[2, SCI4]], [86, 91]);
   P("mcmaster", "Integrated Science (iSci)", "BSc", "life_sci", ["ENG4U", "MCV4U", "SBI4U", "SCH4U", "SPH4U"], [], [90, 95], { supp: "Supplementary application (required)" });

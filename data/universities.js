@@ -7,7 +7,7 @@ window.UNIVERSITIES = [
     id: "uoft", name: "University of Toronto", province: "ON",
     city: "Toronto (St. George), Mississauga (UTM), Scarborough (UTSC)", founded: 1827, size: "~75,000 undergrads across three campuses",
     setting: "Big city — downtown St. George campus plus two suburban campuses",
-    about: "Canada's largest and most research-intensive university, consistently ranked first in Canada. The St. George campus is downtown Toronto; UTM and UTSC are smaller suburban campuses with their own programs and co-op options.",
+    about: "One of Canada's largest research universities, often ranked among the top universities in the country. The St. George campus is downtown Toronto; UTM and UTSC are smaller suburban campuses with their own programs and co-op options.",
     life: ["Huge choice of courses, clubs (1,000+) and research opportunities", "Known for a demanding academic culture and tough grading, especially in first year", "First-year residence guarantee for students who apply on time (varies by college/campus)", "College system at St. George gives you a smaller community inside a big school", "Toronto is expensive to live in, but transit-connected and full of internships"],
     website: "https://www.utoronto.ca", admissions: "https://future.utoronto.ca"
   },
@@ -15,7 +15,7 @@ window.UNIVERSITIES = [
     id: "waterloo", name: "University of Waterloo", province: "ON",
     city: "Waterloo", founded: 1957, size: "~36,000 undergrads",
     setting: "Mid-size tech city (Kitchener-Waterloo)",
-    about: "Famous for engineering, computer science and mathematics, and for running one of the largest co-op programs in the world, where students alternate study terms with paid work terms.",
+    about: "Famous for engineering, computer science and mathematics, and for its large co-op program, where students alternate study terms with paid work terms.",
     life: ["Co-op gives up to two years of paid work experience before graduation", "Heavy, fast-paced workload in math, CS and engineering", "Strong startup and tech culture (Velocity incubator, Hack the North)", "First-year residence guarantee for those who meet the deadline", "Campus life is quieter than larger cities; students move a lot because of co-op"],
     website: "https://uwaterloo.ca", admissions: "https://uwaterloo.ca/future-students"
   },
@@ -23,7 +23,7 @@ window.UNIVERSITIES = [
     id: "mcmaster", name: "McMaster University", province: "ON",
     city: "Hamilton", founded: 1887, size: "~31,000 undergrads",
     setting: "Mid-size city, compact walkable campus",
-    about: "A research-intensive university known for health sciences, medicine, engineering and its problem-based learning approach (which McMaster's medical school helped pioneer).",
+    about: "A research-intensive university known for health sciences, medicine, engineering and its problem-based learning approach (an approach its medical school is known for).",
     life: ["Compact, green campus with a strong school spirit", "Health Sciences and iSci are famous inquiry-based programs", "First-year residence guarantee for eligible applicants", "Hamilton is cheaper than Toronto with a GO train link", "Large hospital network nearby for health-related volunteering and research"],
     website: "https://www.mcmaster.ca", admissions: "https://future.mcmaster.ca"
   },
@@ -32,14 +32,14 @@ window.UNIVERSITIES = [
     city: "London", founded: 1878, size: "~33,000 undergrads (including affiliated colleges)",
     setting: "Mid-size city, large traditional campus",
     about: "Known for the Ivey Business School, medicine, kinesiology and a very strong residential student experience. Affiliated colleges (Huron, King's) offer smaller class sizes.",
-    life: ["Often described as having one of the most social, spirited student experiences in Canada", "Big, beautiful campus with lots of residences", "First-year residence guarantee for eligible applicants", "Ivey HBA (business) is entered after two years via Advanced Entry Opportunity (AEO)", "London is affordable compared to Toronto"],
+    life: ["Known for a social, spirited student experience", "Big, beautiful campus with lots of residences", "First-year residence guarantee for eligible applicants", "Ivey HBA (business) is entered after two years via Advanced Entry Opportunity (AEO)", "London is affordable compared to Toronto"],
     website: "https://www.uwo.ca", admissions: "https://welcome.uwo.ca"
   },
   {
     id: "queens", name: "Queen's University", province: "ON",
     city: "Kingston", founded: 1841, size: "~24,000 undergrads",
     setting: "Small city, historic campus by Lake Ontario",
-    about: "One of Canada's oldest universities, known for Commerce (Smith School of Business), engineering, health sciences and a tight-knit, tradition-heavy student culture.",
+    about: "A historic university, known for Commerce (Smith School of Business), engineering, health sciences and a tight-knit, tradition-heavy student culture.",
     life: ["Very strong school spirit and traditions; most students live in the 'student village' near campus", "Smaller city means campus is the centre of social life", "First-year residence guarantee for eligible applicants", "Many programs ask for a Personal Statement of Experience (PSE)", "Kingston is far from big cities (about 2.5 hours from Toronto)"],
     website: "https://www.queensu.ca", admissions: "https://www.queensu.ca/admission"
   },
@@ -47,7 +47,7 @@ window.UNIVERSITIES = [
     id: "uottawa", name: "University of Ottawa", province: "ON",
     city: "Ottawa", founded: 1848, size: "~40,000 undergrads",
     setting: "Downtown capital city",
-    about: "The largest bilingual (English-French) university in the world, located in downtown Ottawa next to Parliament. Strong in law, health sciences, political science and public policy.",
+    about: "A large bilingual (English-French) university located in downtown Ottawa next to Parliament. Strong in law, health sciences, political science and public policy.",
     life: ["Many programs can be taken in English, French or both; French immersion stream available", "Downtown location close to government jobs and internships", "Co-op available in many programs", "First-year residence guarantee for eligible students", "Large and urban, so you build your own community through clubs"],
     website: "https://www.uottawa.ca", admissions: "https://www.uottawa.ca/study"
   },
@@ -63,8 +63,8 @@ window.UNIVERSITIES = [
     id: "york", name: "York University", province: "ON",
     city: "Toronto (Keele, Glendon, Markham)", founded: 1959, size: "~45,000 undergrads",
     setting: "Big city — large suburban campus with subway access",
-    about: "Canada's third-largest university, home to the Schulich School of Business, Lassonde School of Engineering, Osgoode Hall Law School and the bilingual Glendon campus.",
-    life: ["Huge range of programs and a very diverse student body", "Mostly commuter campus, so community comes from clubs and programs", "Subway line connects Keele campus to downtown Toronto", "Schulich BBA is one of Canada's top undergraduate business programs"],
+    about: "A large university, home to the Schulich School of Business, Lassonde School of Engineering, Osgoode Hall Law School and the bilingual Glendon campus.",
+    life: ["Huge range of programs and a very diverse student body", "Mostly commuter campus, so community comes from clubs and programs", "Subway line connects Keele campus to downtown Toronto", "The Schulich BBA is a well-known undergraduate business program"],
     website: "https://www.yorku.ca", admissions: "https://futurestudents.yorku.ca"
   },
   {
@@ -80,7 +80,7 @@ window.UNIVERSITIES = [
     city: "Waterloo (also Brantford and Milton)", founded: 1911, size: "~19,000 undergrads",
     setting: "Mid-size city, compact campus",
     about: "Known for the Lazaridis School of Business (BBA), music, economics and a friendly, community-oriented campus. Offers double degrees with the University of Waterloo.",
-    life: ["Smaller, close-knit campus right next to the University of Waterloo", "BBA co-op is one of the largest business co-ops in Canada", "Strong school spirit (purple and gold)", "First-year residence guarantee for eligible students"],
+    life: ["Smaller, close-knit campus right next to the University of Waterloo", "The BBA has a large co-op option", "Strong school spirit (purple and gold)", "First-year residence guarantee for eligible students"],
     website: "https://www.wlu.ca", admissions: "https://www.wlu.ca/future-students"
   },
   {
@@ -88,7 +88,7 @@ window.UNIVERSITIES = [
     city: "Guelph", founded: 1964, size: "~28,000 undergrads",
     setting: "Small city, large green campus",
     about: "Known for life sciences, biomedical science, agriculture, veterinary medicine (Ontario Veterinary College), food science and environmental sciences.",
-    life: ["Frequently praised for friendly, supportive campus culture", "Beautiful campus with an arboretum", "Strong science and pre-vet/pre-med pathways", "First-year residence guarantee for eligible students", "About an hour from Toronto"],
+    life: ["Known for a friendly, supportive campus culture", "Beautiful campus with an arboretum", "Strong science and pre-vet/pre-med pathways", "First-year residence guarantee for eligible students", "About an hour from Toronto"],
     website: "https://www.uoguelph.ca", admissions: "https://www.uoguelph.ca/admission"
   },
   {
@@ -159,7 +159,7 @@ window.UNIVERSITIES = [
     id: "ocadu", name: "OCAD University", province: "ON",
     city: "Toronto (downtown)", founded: 1876, size: "~5,000 undergrads",
     setting: "Downtown Toronto arts district",
-    about: "Canada's largest art and design university, offering fine arts, design, digital media and illustration programs. Admission is portfolio-based.",
+    about: "A specialized art and design university offering fine arts, design, digital media and illustration programs. Admission is portfolio-based.",
     life: ["Studio-based learning in small classes", "Right downtown near the Art Gallery of Ontario", "Strong creative community", "Limited residence options"],
     website: "https://www.ocadu.ca", admissions: "https://www.ocadu.ca/admissions"
   },

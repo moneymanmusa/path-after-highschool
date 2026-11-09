@@ -6,7 +6,7 @@ window.UNIVERSITIES.push(
     id: "ubc", name: "University of British Columbia", province: "BC",
     city: "Vancouver (also Kelowna – UBC Okanagan)", founded: 1908, size: "~60,000 undergrads across two campuses",
     setting: "Big city — huge campus on a forested peninsula by the ocean",
-    about: "One of Canada's top three research universities, known for science, engineering, forestry, the Sauder School of Business and a stunning oceanside campus. UBC Okanagan in Kelowna is a smaller campus with its own programs.",
+    about: "A major research university known for science, engineering, forestry, the Sauder School of Business and a stunning oceanside campus. UBC Okanagan in Kelowna is a smaller campus with its own programs.",
     life: ["Massive campus with beaches, forest trails and its own neighbourhood", "Holistic admissions: every applicant writes Personal Profile responses", "Large first-year courses; community comes from residence and clubs", "Vancouver is one of the most expensive cities in Canada for housing", "First-year residence is guaranteed for eligible students who apply by the deadline"],
     website: "https://www.ubc.ca", admissions: "https://you.ubc.ca"
   },
@@ -14,7 +14,7 @@ window.UNIVERSITIES.push(
     id: "sfu", name: "Simon Fraser University", province: "BC",
     city: "Burnaby (also Vancouver and Surrey)", founded: 1965, size: "~30,000 undergrads",
     setting: "Suburban mountaintop campus in Metro Vancouver",
-    about: "A comprehensive university known for computing science, communication, criminology, business (Beedie) and one of the largest co-op programs in Western Canada.",
+    about: "A comprehensive university known for computing science, communication, criminology, business (Beedie) and a large co-op program.",
     life: ["Trimester system — you can study year-round", "Strong co-op program across most faculties", "Burnaby Mountain campus is foggy and quiet; Surrey and Vancouver campuses are urban", "Mostly commuter culture"],
     website: "https://www.sfu.ca", admissions: "https://www.sfu.ca/students/admission.html"
   },
@@ -39,7 +39,7 @@ window.UNIVERSITIES.push(
     id: "ualberta", name: "University of Alberta", province: "AB",
     city: "Edmonton", founded: 1908, size: "~33,000 undergrads",
     setting: "Big city, large riverside campus",
-    about: "A top-five Canadian research university known for engineering, medicine, AI research (Amii), agriculture and life sciences.",
+    about: "A major research university known for engineering, medicine, AI research (Amii), agriculture and life sciences.",
     life: ["Large campus connected by LRT", "Lower tuition and cost of living than Toronto or Vancouver", "Big-school feel with lots of clubs and research jobs", "Cold winters; pedways connect many buildings"],
     website: "https://www.ualberta.ca", admissions: "https://www.ualberta.ca/admissions"
   },
@@ -97,7 +97,7 @@ window.UNIVERSITIES.push(
     id: "umanitoba", name: "University of Manitoba", province: "MB",
     city: "Winnipeg", founded: 1877, size: "~25,000 undergrads",
     setting: "Big city, suburban riverside campus",
-    about: "Western Canada's first university, known for agriculture, engineering, nursing, the Asper School of Business and health sciences.",
+    about: "A long-established university known for agriculture, engineering, nursing, the Asper School of Business and health sciences.",
     life: ["Low tuition and cost of living", "Many students start in University 1, a flexible first year", "Tunnels connect campus buildings for the winter"],
     website: "https://umanitoba.ca", admissions: "https://umanitoba.ca/admissions"
   },
@@ -114,7 +114,7 @@ window.UNIVERSITIES.push(
     id: "mcgill", name: "McGill University", province: "QC",
     city: "Montreal", founded: 1821, size: "~27,000 undergrads",
     setting: "Downtown Montreal at the foot of Mount Royal",
-    about: "One of Canada's most famous universities, English-language, known for medicine, science, engineering, law, arts and the Desautels Faculty of Management. Admission for Ontario students is mostly based on top-6 averages.",
+    about: "A well-known English-language university known for medicine, science, engineering, law, arts and the Desautels Faculty of Management. Admission for Ontario students is mostly based on top-6 averages.",
     life: ["Downtown Montreal campus with a big international community", "Montreal is affordable for a major city and very lively", "Students mostly live off campus after first year", "Academically demanding with a self-directed culture", "Out-of-province students pay higher tuition than Quebec residents"],
     website: "https://www.mcgill.ca", admissions: "https://www.mcgill.ca/undergraduate-admissions"
   },
@@ -138,7 +138,7 @@ window.UNIVERSITIES.push(
     id: "ulaval", name: "Université Laval", province: "QC",
     city: "Quebec City", founded: 1852, size: "~30,000 undergrads",
     setting: "Big city, large suburban campus",
-    about: "The oldest French-language university in North America, offering programs in almost every field. Teaching is in French.",
+    about: "A long-established French-language university offering programs in almost every field. Teaching is in French.",
     life: ["Fully French-language environment", "Large campus connected by underground tunnels", "Quebec City is historic and affordable"],
     website: "https://www.ulaval.ca", admissions: "https://www.ulaval.ca/admission"
   },
@@ -155,7 +155,7 @@ window.UNIVERSITIES.push(
     id: "unb", name: "University of New Brunswick", province: "NB",
     city: "Fredericton (also Saint John)", founded: 1785, size: "~8,000 students",
     setting: "Small capital city, hillside campus",
-    about: "One of North America's oldest public universities, known for engineering, computer science, forestry, nursing and cybersecurity research.",
+    about: "A long-established public university known for engineering, computer science, forestry, nursing and cybersecurity research.",
     life: ["Small city with an easy-going pace", "Low cost of living", "Smaller classes than big-city schools"],
     website: "https://www.unb.ca", admissions: "https://www.unb.ca/admissions"
   },
@@ -163,7 +163,7 @@ window.UNIVERSITIES.push(
     id: "mta", name: "Mount Allison University", province: "NB",
     city: "Sackville", founded: 1839, size: "~2,300 students",
     setting: "Small town",
-    about: "A small, highly rated undergraduate liberal arts and sciences university known for small classes and close mentoring.",
+    about: "A small undergraduate liberal arts and sciences university known for small classes and close mentoring.",
     life: ["Very small classes; professors know your name", "Most students live on campus", "Quiet small-town life"],
     website: "https://mta.ca", admissions: "https://mta.ca/future-students"
   },
@@ -171,7 +171,7 @@ window.UNIVERSITIES.push(
     id: "umoncton", name: "Université de Moncton", province: "NB",
     city: "Moncton (also Edmundston and Shippagan)", founded: 1963, size: "~4,000 students",
     setting: "Mid-size bilingual city",
-    about: "The largest French-language university in Canada outside Quebec, serving Acadian communities. Teaching is in French.",
+    about: "A French-language university serving Acadian communities. Teaching is in French.",
     life: ["French-language studies in a bilingual city", "Small classes", "Strong Acadian culture"],
     website: "https://www.umoncton.ca", admissions: "https://www.umoncton.ca/futursetudiants"
   },
@@ -180,7 +180,7 @@ window.UNIVERSITIES.push(
     id: "dal", name: "Dalhousie University", province: "NS",
     city: "Halifax", founded: 1818, size: "~16,000 undergrads",
     setting: "Small coastal city, urban campus",
-    about: "Atlantic Canada's largest research university, known for ocean sciences, health professions, engineering, computer science and law.",
+    about: "A major research university in Atlantic Canada, known for ocean sciences, health professions, engineering, computer science and law.",
     life: ["Halifax is a lively, walkable university city", "Large student population across several local universities", "Co-op available in engineering, CS and management", "Housing in Halifax has become tight"],
     website: "https://www.dal.ca", admissions: "https://www.dal.ca/admissions.html"
   },
@@ -214,7 +214,7 @@ window.UNIVERSITIES.push(
     city: "Charlottetown", founded: 1969, size: "~5,000 students",
     setting: "Small capital city",
     about: "The island's only university, known for the Atlantic Veterinary College, nursing, sustainable design engineering and business.",
-    life: ["Small and friendly", "Island lifestyle and low cost of living", "Home of one of Canada's five veterinary colleges"],
+    life: ["Small and friendly", "Island lifestyle and low cost of living", "Home of the Atlantic Veterinary College"],
     website: "https://www.upei.ca", admissions: "https://www.upei.ca/future-students"
   },
   // ---------------- Newfoundland and Labrador ----------------
@@ -222,8 +222,8 @@ window.UNIVERSITIES.push(
     id: "mun", name: "Memorial University of Newfoundland", province: "NL",
     city: "St. John's (also Corner Brook)", founded: 1925, size: "~14,000 undergrads",
     setting: "Small coastal capital city",
-    about: "Atlantic Canada's largest university, known for ocean and marine engineering, the Marine Institute, medicine and some of the lowest tuition in Canada.",
-    life: ["Low tuition compared to most of Canada", "Friendly, distinctive city culture", "Strong ocean-industry co-op and research"],
+    about: "A large university in Atlantic Canada, known for ocean and marine engineering, the Marine Institute, medicine and relatively low tuition.",
+    life: ["Relatively low tuition", "Friendly, distinctive city culture", "Strong ocean-industry co-op and research"],
     website: "https://www.mun.ca", admissions: "https://www.mun.ca/undergrad"
   }
 );

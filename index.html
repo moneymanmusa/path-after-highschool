@@ -5,18 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Path After High School</title>
   <meta name="description" content="Pick the Ontario high school courses you've taken and see which Canadian university programs you can apply to.">
-  <script>
-    // Apply the saved theme before first paint to avoid a flash.
-    (function () {
-      var t = null;
-      try { t = localStorage.getItem("pahs.theme"); } catch (e) {}
-      if (t !== "light" && t !== "dark" && t !== "blur") {
-        t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      }
-      document.documentElement.setAttribute("data-theme", t);
-    })();
-  </script>
-  <link rel="stylesheet" href="styles.css?v=5">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://www.gstatic.com; frame-src https://path-after-highschool.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script src="theme-init.js?v=6"></script>
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <header class="site-header">
@@ -46,8 +38,9 @@
   <main id="app" tabindex="-1"></main>
 
   <footer class="site-footer">
+    Independent student resource — not affiliated with any university, OUAC or the Ontario government.
     Admission requirements change every year. Always confirm on the university's official site before applying.
-    · <a href="#/about">About the data</a>
+    · <a href="#/about">About the data</a> · <a href="#/terms">Terms &amp; disclaimer</a> · <a href="#/privacy">Privacy</a>
   </footer>
 
   <nav class="bottom-nav" aria-label="Main">
@@ -65,15 +58,15 @@
     </a>
   </nav>
 
-  <script src="data/courses.js?v=5"></script>
-  <script src="data/fields.js?v=5"></script>
-  <script src="data/universities.js?v=5"></script>
-  <script src="data/universities-canada.js?v=5"></script>
-  <script src="data/programs.js?v=5"></script>
-  <script src="data/programs-canada.js?v=5"></script>
-  <script src="data/community.js?v=5"></script>
-  <script src="auth-config.js?v=5"></script>
-  <script src="auth.js?v=5"></script>
-  <script src="app.js?v=5"></script>
+  <script src="data/courses.js?v=6"></script>
+  <script src="data/fields.js?v=6"></script>
+  <script src="data/universities.js?v=6"></script>
+  <script src="data/universities-canada.js?v=6"></script>
+  <script src="data/programs.js?v=6"></script>
+  <script src="data/programs-canada.js?v=6"></script>
+  <script src="data/community.js?v=6"></script>
+  <script src="auth-config.js?v=6"></script>
+  <script src="auth.js?v=6"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

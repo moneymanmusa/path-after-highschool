@@ -71,6 +71,12 @@
       const snap = await db.collection("users").doc(user.uid).get();
       return snap.exists ? (snap.data().courses || []) : null;
     },
+    async deleteAccount() {
+      await ready;
+      if (!user) return;
+      await db.collection("users").doc(user.uid).delete();
+      await user.delete();
+    },
     async saveCourses(courses) {
       if (!user) return;
       await db.collection("users").doc(user.uid).set({ courses, updated: Date.now() }, { merge: true });

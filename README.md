@@ -51,4 +51,8 @@ service cloud.firestore {
 - Student-reported data goes only in `data/community.js` and **must** include a link to the original post. Nothing is attributed to students without a source.
 - Extracurricular ideas in `fields.js` are general guidance, not quotes.
 
-Found an error? Open an issue.
+## Security
+
+- Content Security Policy (meta tag plus `vercel.json` headers) limits scripts to this site and the Firebase SDK.
+- All data shown on pages is HTML-escaped, and data-driven links only allow `http`/`https`.
+- Firestore rules restrict each user to their own document. Users can delete their account and data from the Account page.

@@ -170,7 +170,7 @@
   P("upei", "Nursing", "BScN", "nursing", NURSE, [ONE_MATH], null);
   P("upei", "Business Administration", "BBA", "business", ["ENG4U"], [ONE_MATH], null);
   P("upei", "Biology (pre-veterinary route)", "BSc", "life_sci", BIO, [], null, { note: "UPEI is home to the Atlantic Veterinary College, which you apply to after pre-vet university courses." });
-  P("mun", "Engineering", "BEng", "engineering", ENGR, [], null, { note: "Includes ocean and naval architectural engineering, which few Canadian schools offer." });
+  P("mun", "Engineering", "BEng", "engineering", ENGR, [], null, { note: "Includes ocean and naval architectural engineering options." });
   P("mun", "Computer Science", "BSc", "cs", CS, [], null);
   P("mun", "Nursing", "BN", "nursing", NURSE, [ONE_MATH], null);
   P("mun", "Business Administration", "BBA", "business", ["ENG4U"], [ONE_MATH], null);

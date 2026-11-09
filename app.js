@@ -64,6 +64,11 @@
     return { eligible: missing.length === 0, missing };
   }
   const avgText = p => p.avg ? `${p.avg[0]}–${p.avg[1]}%` : "No estimate yet";
+  // Only allow http(s) links in data-driven hrefs (blocks javascript: and similar).
+  const safeUrl = url => {
+    try { const u = new URL(url); return (u.protocol === "https:" || u.protocol === "http:") ? esc(u.href) : "#"; }
+    catch { return "#"; }
+  };
 
   // ================= Views =================
   function viewHome() {
@@ -356,14 +361,14 @@
           <p class="avg">${avgText(p)}</p>
           <p class="small muted">${p.avg ? "Estimated typical top-6 average of admitted students. Not an official cutoff — it changes every year." : "We don't have an estimate for this program yet."}</p>
           <h3>Marks reported by students</h3>
-          ${comm.averages.length ? `<ul>${comm.averages.map(a => `<li><strong>${esc(a.value)}</strong>${a.outcome ? " · " + esc(a.outcome) : ""}${a.year ? " · " + esc(a.year) : ""} · <a href="${esc(a.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
-            : `<p class="small">None collected yet. See what students posted on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
+          ${comm.averages.length ? `<ul>${comm.averages.map(a => `<li><strong>${esc(a.value)}</strong>${a.outcome ? " · " + esc(a.outcome) : ""}${a.year ? " · " + esc(a.year) : ""} · <a href="${safeUrl(a.source)}" target="_blank" rel="noopener noreferrer">source</a></li>`).join("")}</ul>`
+            : `<p class="small">None collected yet. See what students posted on <a href="${redditSearch}" target="_blank" rel="noopener noreferrer">r/OntarioGrade12s</a>.</p>`}
           ${p.supp ? `<h3>Extra application</h3><p>${esc(p.supp)}</p>` : ""}
         </section>
         <section class="panel">
           <h2>Required courses</h2>
           <ul class="reqs">${reqRows}</ul>
-          <p class="small muted" style="margin-top:10px">You'll also need six Grade 12 U/M courses in total. <a href="${esc(u.admissions)}" target="_blank" rel="noopener">Confirm on the official site</a>.</p>
+          <p class="small muted mt">You'll also need six Grade 12 U/M courses in total. <a href="${safeUrl(u.admissions)}" target="_blank" rel="noopener noreferrer">Confirm on the official site</a>.</p>
         </section>
       </div>
 
@@ -386,18 +391,18 @@
         <p>${esc(u.about)}</p>
         <h3>Student life</h3>
         <ul>${u.life.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
-        <p class="small" style="margin-top:10px"><a href="${esc(u.website)}" target="_blank" rel="noopener">Visit the official website</a></p>
+        <p class="small mt"><a href="${safeUrl(u.website)}" target="_blank" rel="noopener noreferrer">Visit the official website</a></p>
       </section>
 
       <section class="panel">
         <button id="ecBtn" class="btn primary block" aria-expanded="false" aria-controls="ecs">Best supplementary extracurriculars</button>
         <div id="ecs" hidden>
           <h3>What admitted students listed</h3>
-          ${comm.ecs.length ? `<ul>${comm.ecs.map(e => `<li>${esc(e.text)}${e.outcome ? " <em>(" + esc(e.outcome) + ")</em>" : ""} · <a href="${esc(e.source)}" target="_blank" rel="noopener">source</a></li>`).join("")}</ul>`
-            : `<p class="small">No student examples collected for this program yet. See what students shared on <a href="${redditSearch}" target="_blank" rel="noopener">r/OntarioGrade12s</a>.</p>`}
+          ${comm.ecs.length ? `<ul>${comm.ecs.map(e => `<li>${esc(e.text)}${e.outcome ? " <em>(" + esc(e.outcome) + ")</em>" : ""} · <a href="${safeUrl(e.source)}" target="_blank" rel="noopener noreferrer">source</a></li>`).join("")}</ul>`
+            : `<p class="small">No student examples collected for this program yet. See what students shared on <a href="${redditSearch}" target="_blank" rel="noopener noreferrer">r/OntarioGrade12s</a>.</p>`}
           <h3>Ideas that help ${esc(f.name)} applications</h3>
           <ul>${f.ecs.map(e => `<li>${esc(e)}</li>`).join("")}</ul>
-          <p class="small muted" style="margin-top:10px">A few activities you stuck with, led, or built something in usually count more than a long list.${p.supp ? " This program has an extra application, which is where these activities are reviewed." : ""}</p>
+          <p class="small muted mt">A few activities you stuck with, led, or built something in usually count more than a long list.${p.supp ? " This program has an extra application, which is where these activities are reviewed." : ""}</p>
         </div>
       </section>`;
 
@@ -424,6 +429,7 @@
           <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" inputmode="email" required></div>
           <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="${isSignup ? "new-password" : "current-password"}" minlength="6" required>
             ${isSignup ? `<span class="small muted">At least 6 characters.</span>` : ""}</div>
+          ${isSignup ? `<label class="check"><input type="checkbox" id="agree" required> <span>I agree to the <a href="#/terms" target="_blank">Terms</a> and <a href="#/privacy" target="_blank">Privacy Policy</a>, and I'm 13 or older (or have a parent's permission).</span></label>` : ""}
           <p class="error" id="err" role="alert"></p>
           <button class="btn primary block" type="submit" ${Auth.enabled ? "" : "disabled"}>${isSignup ? "Sign up" : "Log in"}</button>
           ${isSignup ? "" : `<p class="switch-auth"><button type="button" class="link-btn" id="forgot" ${Auth.enabled ? "" : "disabled"}>Forgot password?</button></p>`}
@@ -439,6 +445,7 @@
       const email = form.querySelector("#email").value.trim();
       const pw = form.querySelector("#pw").value;
       if (!email || !pw) { err.textContent = "Please fill in your email and password."; return; }
+      if (isSignup && !form.querySelector("#agree").checked) { err.textContent = "Please agree to the Terms and Privacy Policy to continue."; return; }
       const btn = form.querySelector("button[type=submit]");
       btn.disabled = true;
       try {
@@ -471,9 +478,28 @@
           <p>Your ${plural(selected.size, "course")} are saved to your account.</p>
           <a class="btn primary block" href="#/results">See my programs</a>
           <p class="switch-auth"><button class="link-btn" id="logout">Log out</button></p>
+          <p class="switch-auth"><button class="link-btn danger" id="delete">Delete my account and data</button></p>
+          <p class="error" id="err" role="alert"></p>
         </div>
       </div>`;
     app.querySelector("#logout").addEventListener("click", async () => { await Auth.logOut(); location.hash = "#/login"; });
+    const del = app.querySelector("#delete");
+    del.addEventListener("click", async () => {
+      const err = app.querySelector("#err");
+      if (del.dataset.confirm !== "1") {
+        del.dataset.confirm = "1";
+        del.textContent = "Tap again to permanently delete your account";
+        return;
+      }
+      try {
+        await Auth.deleteAccount();
+        location.hash = "#/";
+      } catch (ex) {
+        err.textContent = ex && ex.code === "auth/requires-recent-login"
+          ? "For your security, log out, log back in, then try again."
+          : Auth.friendly(ex);
+      }
+    });
   }
 
   async function syncFromCloud() {
@@ -502,6 +528,54 @@
       </section>`;
   }
 
+  function viewTerms() {
+    app.innerHTML = `
+      <section class="page-head"><h1>Terms of use &amp; disclaimer</h1><p>Last updated: November 2026</p></section>
+      <section class="panel legal">
+        <h2>Information only, not advice</h2>
+        <p>Path After High School is a free planning tool. Everything on this site is general information to help you explore options. It is not academic, admissions, career or professional advice, and it is not a guarantee of admission to any program.</p>
+        <h2>Accuracy</h2>
+        <p>Admission requirements, prerequisites, averages, deadlines and program offerings change every year and can differ by applicant. We try to keep information accurate but make no promises that it is complete, current or error-free. Admission averages shown are estimates, not official cutoffs. <strong>Always confirm details on each university's official website and with your guidance counsellor before making decisions or applying.</strong></p>
+        <h2>No affiliation</h2>
+        <p>This site is independent. It is not affiliated with, endorsed by or sponsored by any university, college, the Ontario Universities' Application Centre (OUAC), the Ontario Ministry of Education, Reddit or any other organization mentioned. University names and course codes are used only to identify them. All trademarks belong to their respective owners.</p>
+        <h2>Links to other sites</h2>
+        <p>We link to official university websites and public discussion forums for convenience. We don't control those sites and aren't responsible for their content.</p>
+        <h2>Accounts</h2>
+        <p>Accounts are optional. You must be 13 or older to create one, or have permission from a parent or guardian. Keep your password private. Don't misuse the site, try to access other people's data, or interfere with how it works. We may remove accounts that break these terms.</p>
+        <h2>Limitation of liability</h2>
+        <p>The site is provided "as is", without warranties of any kind. To the fullest extent allowed by law, the site's operators are not liable for any decisions made or losses arising from use of the site or reliance on its information.</p>
+        <h2>Changes</h2>
+        <p>We may update these terms. Continuing to use the site after an update means you accept the new terms.</p>
+      </section>`;
+  }
+
+  function viewPrivacy() {
+    app.innerHTML = `
+      <section class="page-head"><h1>Privacy policy</h1><p>Last updated: November 2026</p></section>
+      <section class="panel legal">
+        <h2>Short version</h2>
+        <p>You can use the whole site without an account. If you make one, we store only what's needed to save your courses. We don't sell your data, show ads or use tracking analytics.</p>
+        <h2>What we store</h2>
+        <ul>
+          <li><strong>Without an account:</strong> your selected courses and theme choice are saved in your own browser (local storage). They never leave your device.</li>
+          <li><strong>With an account:</strong> your email address, the first name you enter, and your selected courses.</li>
+        </ul>
+        <h2>Where it's stored</h2>
+        <p>Accounts and saved courses are stored with Google Firebase (Authentication and Cloud Firestore), which may process data outside Canada. Security rules mean only you can read or change your saved courses. The site is hosted by a web hosting provider that may keep standard technical logs (such as IP addresses) for security.</p>
+        <h2>How we use it</h2>
+        <p>Only to let you log in, save your courses, and send account emails you request (such as a password reset). We don't share it with anyone else except as required by law.</p>
+        <h2>Your choices</h2>
+        <ul>
+          <li>Delete your account and saved data any time from the Account page ("Delete my account and data").</li>
+          <li>Clear the data saved in your browser by clearing this site's data in your browser settings.</li>
+        </ul>
+        <h2>Children</h2>
+        <p>Accounts are for people 13 and older, or younger students with a parent or guardian's permission.</p>
+        <h2>Changes</h2>
+        <p>If we change this policy, we'll update the date at the top of this page.</p>
+      </section>`;
+  }
+
   // ================= Router =================
   function route() {
     const h = location.hash.replace(/^#\/?/, "");
@@ -510,6 +584,8 @@
     else if (page === "results") viewResults();
     else if (page === "program") viewProgram(decodeURIComponent(arg || ""));
     else if (page === "about") viewAbout();
+    else if (page === "terms") viewTerms();
+    else if (page === "privacy") viewPrivacy();
     else if (page === "signup") (Auth.enabled && Auth.current()) ? viewAccount() : authForm("signup");
     else if (page === "login" || page === "account") viewAccount();
     else viewHome();

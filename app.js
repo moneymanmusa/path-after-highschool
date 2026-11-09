@@ -10,6 +10,9 @@
   const PROGRAM_BY_ID = Object.fromEntries(PROGRAMS.map(p => [p.id, p]));
   const COMMUNITY = window.COMMUNITY || {};
   const SUBJECTS = [...new Set(COURSES.map(c => c.subject))];
+  const PROVINCES = { ON: "Ontario", BC: "British Columbia", AB: "Alberta", SK: "Saskatchewan", MB: "Manitoba", QC: "Quebec", NB: "New Brunswick", NS: "Nova Scotia", PE: "Prince Edward Island", NL: "Newfoundland and Labrador" };
+  const provincesPresent = Object.keys(PROVINCES).filter(k => window.UNIVERSITIES.some(u => u.province === k));
+  const UNIS_SORTED = [...window.UNIVERSITIES].sort((a, b) => a.name.localeCompare(b.name));
 
   const app = document.getElementById("app");
   const STORE_KEY = "pahs.selected";
@@ -132,7 +135,7 @@
     const eligible = results.filter(x => x.r.eligible);
     const close = results.filter(x => !x.r.eligible && x.r.missing.length === 1);
 
-    let fieldFilter = "all", uniFilter = "all", q = "", showClose = false;
+    let fieldFilter = "all", uniFilter = "all", provFilter = "all", q = "", showClose = false;
 
     app.innerHTML = `
       <section class="hero">
@@ -146,9 +149,13 @@
           <option value="all">All majors</option>
           ${Object.entries(FIELDS).map(([k, f]) => `<option value="${k}">${esc(f.name)}</option>`).join("")}
         </select>
+        <select id="prov" aria-label="Province">
+          <option value="all">All provinces</option>
+          ${provincesPresent.map(k => `<option value="${k}">${esc(PROVINCES[k])}</option>`).join("")}
+        </select>
         <select id="uni" aria-label="University">
           <option value="all">All universities</option>
-          ${window.UNIVERSITIES.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("")}
+          ${UNIS_SORTED.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("")}
         </select>
         <label class="toggle"><input id="close" type="checkbox"> Also show programs I'm 1 course away from (${close.length})</label>
       </div>
@@ -161,6 +168,7 @@
       const rows = pool.filter(({ p }) =>
         (fieldFilter === "all" || p.field === fieldFilter) &&
         (uniFilter === "all" || p.uni === uniFilter) &&
+        (provFilter === "all" || UNI_BY_ID[p.uni].province === provFilter) &&
         (!term || p.name.toLowerCase().includes(term) || UNI_BY_ID[p.uni].name.toLowerCase().includes(term) || FIELDS[p.field].name.toLowerCase().includes(term)));
       if (!rows.length) { out.innerHTML = `<p class="empty">No programs match these filters.</p>`; return; }
 
@@ -172,9 +180,9 @@
           <div class="cards">
             ${byField[f].sort((a, b) => UNI_BY_ID[a.p.uni].name.localeCompare(UNI_BY_ID[b.p.uni].name)).map(({ p, r }) => `
               <a class="card ${r.eligible ? "" : "almost"}" href="#/program/${p.id}">
-                <span class="uni">${esc(UNI_BY_ID[p.uni].name)}</span>
+                <span class="uni">${esc(UNI_BY_ID[p.uni].name)} · ${UNI_BY_ID[p.uni].province}</span>
                 <span class="pname">${esc(p.name)}</span>
-                <span class="meta">${esc(p.degree)} · Est. average ${avgText(p)}${p.supp ? " · Supplementary app" : ""}</span>
+                <span class="meta">${esc(p.degree)} · ${p.avg ? "Est. average " + avgText(p) : "No average estimate yet"}${p.supp ? " · Supplementary app" : ""}</span>
                 ${r.eligible ? "" : `<span class="missing">Missing: ${esc(r.missing[0])}</span>`}
               </a>`).join("")}
           </div>
@@ -184,6 +192,7 @@
     app.querySelector("#q").addEventListener("input", e => { q = e.target.value; render(); });
     app.querySelector("#field").addEventListener("change", e => { fieldFilter = e.target.value; render(); });
     app.querySelector("#uni").addEventListener("change", e => { uniFilter = e.target.value; render(); });
+    app.querySelector("#prov").addEventListener("change", e => { provFilter = e.target.value; render(); });
     app.querySelector("#close").addEventListener("change", e => { showClose = e.target.checked; render(); });
     render();
   }
@@ -243,7 +252,7 @@
       <section class="panel">
         <h2>About ${esc(u.name)}</h2>
         <dl class="facts">
-          <dt>Location</dt><dd>${esc(u.city)}, ${esc(u.province)}</dd>
+          <dt>Location</dt><dd>${esc(u.city)}, ${esc(PROVINCES[u.province] || u.province)}</dd>
           <dt>Setting</dt><dd>${esc(u.setting)}</dd>
           <dt>Size</dt><dd>${esc(u.size)}</dd>
           <dt>Founded</dt><dd>${u.founded}</dd>
@@ -279,7 +288,8 @@
     app.innerHTML = `
       <section class="hero"><h1>About the data</h1></section>
       <section class="panel">
-        <p>This site currently covers <strong>${PROGRAMS.length} programs</strong> at <strong>${uniCount} Ontario universities</strong> and <strong>${COURSES.length} Ontario high school courses</strong>. Universities in other provinces will be added in later updates.</p>
+        <p>This site currently covers <strong>${PROGRAMS.length} programs</strong> at <strong>${uniCount} universities</strong> in ${provincesPresent.length} provinces, and <strong>${COURSES.length} Ontario high school courses</strong>. It focuses on the main programs at each school; more programs are added over time.</p>
+        <p>For universities outside Ontario, requirements are shown as the Ontario courses an Ontario applicant needs. Out-of-province schools also look at your overall top-6 average, and Quebec schools charge higher tuition to students from other provinces.</p>
         <h3>Where it comes from</h3>
         <ul>
           <li><strong>High school courses:</strong> Ontario Ministry of Education course codes.</li>

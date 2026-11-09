@@ -25,8 +25,9 @@ Then visit http://localhost:8000.
 
 ## Coverage
 
-- **Wave 1 (current):** Ontario universities and their main undergraduate programs.
-- **Next waves:** British Columbia, Alberta, Quebec, the Prairies and Atlantic Canada, then niche programs.
+- **Wave 1:** Ontario universities and their main undergraduate programs (`universities.js`, `programs.js`).
+- **Wave 2:** Main programs at major universities in every other province (`universities-canada.js`, `programs-canada.js`), with requirements shown as the Ontario courses an Ontario applicant needs.
+- **Next:** more programs per school, smaller universities, and sourced student-reported data.
 
 ## Data sources and honesty rules
 

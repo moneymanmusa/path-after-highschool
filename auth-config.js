@@ -9,12 +9,12 @@
 //  5. Authentication > Settings > Authorized domains > add moneymanmusa.github.io
 //
 // These values are meant to be public; security comes from the Firestore rules.
-window.FIREBASE_CONFIG = null;
-/* Example:
 window.FIREBASE_CONFIG = {
-  apiKey: "...",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project",
-  appId: "..."
+  apiKey: "AIzaSyAj8xfSeVjZW9X00WK1EazkRjKdSFOWpzQ",
+  authDomain: "path-after-highschool.firebaseapp.com",
+  projectId: "path-after-highschool",
+  storageBucket: "path-after-highschool.firebasestorage.app",
+  messagingSenderId: "702361394761",
+  appId: "1:702361394761:web:29554a4f6343606b6ae998",
+  measurementId: "G-R8MDM9V53S"
 };
-*/

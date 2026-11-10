@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treasure Odds Calculator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Fan-made calculator for Fortnite Treasure Hunters chest drop odds, Treasure Hour boosts, prize value and chest routes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Barlow+Semi+Condensed:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: battle-pass style. Sticky gold HUD bar, hero scoreboard, then a two-column "locker" (controls left, loot right), then prize charts, island map and sources. */
+:root{
+  --bg:#0c0920;
+  --bg-2:#130e30;
+  --panel:#1a1440;
+  --panel-2:#241c55;
+  --ink:#fbf4df;
+  --muted:#b3a8d6;
+  --gold:#f7c948;
+  --gold-hi:#ffe9a3;
+  --gold-deep:#c9871b;
+  --line:rgba(247,201,72,.2);
+  --water:#123a6b;
+  --water-2:#0e2c55;
+  --sand:#e9cf8a;
+  --grass:#3f9a4c;
+  --grass-2:#2f7d3d;
+  --r-mythic:#f7c948;
+  --r-legendary:#f28c28;
+  --r-epic:#b866f2;
+  --r-rare:#3fa9f5;
+  --r-uncommon:#62d26f;
+  --r-common:#9ea6bb;
+  --live:#ff4d6d;
+  --display:"Luckiest Guy","Impact","Arial Black",system-ui,sans-serif;
+  --ui:"Barlow Semi Condensed","Arial Narrow",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{background:radial-gradient(1200px 600px at 70% -10%,#3a2470 0%,transparent 60%),radial-gradient(900px 500px at -10% 20%,#2a1a5c 0%,transparent 60%),var(--bg);color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.45;font-weight:500;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg-2)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:.02em;text-wrap:balance;margin:0;line-height:1.05}
+h2{font-size:clamp(28px,4vw,40px);color:var(--gold);text-shadow:0 3px 0 #6b3d05}
+h3{font-size:20px}
+p{margin:0}
+a{color:var(--gold-hi)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold-hi);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* HUD bar */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:linear-gradient(180deg,#1b1442,#130e30);border-bottom:2px solid var(--gold-deep);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.hud .wrap{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand svg{width:40px;height:40px;flex:none}
+.brand b{font-family:var(--display);font-size:24px;font-weight:400;color:var(--gold);text-shadow:0 2px 0 #6b3d05;letter-spacing:.03em}
+.brand small{display:block;font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:-2px}
+.chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);padding:6px 12px;transform:skewX(-8deg)}
+.chip > *{transform:skewX(8deg)}
+.chip .k{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.chip .v{font-weight:800;color:var(--gold-hi)}
+.chip.live{border-color:var(--live);background:#3a0f22}
+.chip.live .v{color:#ffd0d9}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.chip.live .dot{background:var(--live);box-shadow:0 0 0 0 var(--live);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,109,.7)}100%{box-shadow:0 0 0 10px rgba(255,77,109,0)}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.55}
+.hero .wrap{position:relative;padding-block:36px 32px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center}
+.hero h1{font-size:clamp(40px,7vw,76px);color:var(--gold);text-shadow:0 4px 0 #6b3d05,0 10px 30px rgba(247,201,72,.25)}
+.hero h1 span{display:block;color:var(--ink);font-size:.55em;text-shadow:0 3px 0 #2a1a5c}
+.hero p.lede{margin-top:14px;max-width:56ch;color:var(--muted);font-size:18px}
+.hero p.lede b{color:var(--ink)}
+.score{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{background:linear-gradient(160deg,var(--panel-2),var(--panel));border:1px solid var(--line);padding:14px 16px;clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);min-width:0}
+.tile .k{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.tile .v{font-family:var(--display);font-size:clamp(26px,3.6vw,38px);color:var(--gold);line-height:1.1;margin-top:4px;overflow-wrap:anywhere}
+.tile .s{font-size:14px;color:var(--muted);margin-top:2px}
+.tile.big{grid-column:1/-1;background:linear-gradient(135deg,#5a3a07,#2b1c55 70%);border-color:var(--gold-deep)}
+.tile.big .v{font-size:clamp(34px,5vw,52px);color:var(--gold-hi)}
+sup{font-size:.55em}
+
+/* Sections */
+section{padding-block:40px}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.sec-head p{color:var(--muted);max-width:62ch}
+
+.locker{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:24px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);padding:18px}
+.controls{display:grid;gap:18px}
+.controls h3{color:var(--gold)}
+.ctl{display:grid;gap:6px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.ctl output{color:var(--gold-hi);font-weight:800;font-variant-numeric:tabular-nums}
+.ctl .hint{font-size:13px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;background:linear-gradient(90deg,var(--gold) 0 var(--fill,50%),#2f2766 var(--fill,50%) 100%);border-radius:0;transform:skewX(-12deg);cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--gold-hi);border:3px solid #6b3d05;transform:skewX(12deg) rotate(45deg);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--gold-hi);border:3px solid #6b3d05;border-radius:0;transform:rotate(45deg)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.seg button{background:#2a2160;border:1px solid var(--line);padding:8px 4px;font-weight:700;font-size:14px;cursor:pointer;line-height:1.15}
+.seg button[aria-pressed=true]{background:var(--gold);color:#2a1700;border-color:var(--gold-hi)}
+select,input[type=date],input[type=number]{background:#241c55;border:1px solid var(--line);padding:8px 10px;width:100%}
+.counter{display:grid;grid-template-columns:1fr auto auto auto;gap:6px}
+.btn{background:var(--gold);color:#2a1700;border:0;padding:8px 12px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transform:skewX(-8deg);box-shadow:0 3px 0 #6b3d05}
+.btn:hover{background:var(--gold-hi)}
+.btn:active{transform:skewX(-8deg) translateY(2px);box-shadow:0 1px 0 #6b3d05}
+.btn.ghost{background:#2a2160;color:var(--ink);box-shadow:0 3px 0 #0b0820}
+.divider{height:1px;background:var(--line)}
+
+/* Loot cards */
+.loot{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.card{--rc:var(--r-common);position:relative;background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,var(--panel)) 0%,var(--panel) 55%);border:1px solid color-mix(in srgb,var(--rc) 45%,transparent);padding:16px;display:grid;gap:10px;align-content:start;min-width:0}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--rc)}
+.card .top{display:flex;gap:12px;align-items:center}
+.icon{width:54px;height:54px;flex:none;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--rc) 60%,#fff 0%),color-mix(in srgb,var(--rc) 30%,#000) 80%);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.icon svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.card h3{font-size:19px;line-height:1.1}
+.card .rar{font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--rc)}
+.card .sub{font-size:14px;color:var(--muted)}
+.odds{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:13px;font-weight:700;padding:3px 8px;background:#0f0b26;border:1px solid var(--line)}
+.pill.boost{border-color:var(--gold);color:var(--gold-hi)}
+.chance{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.chance .big{font-family:var(--display);font-size:30px;color:var(--ink)}
+.chance .lbl{font-size:13px;color:var(--muted);text-align:right}
+.bar{height:8px;background:#0f0b26;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--rc),var(--gold-hi));min-width:2px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:14px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+
+/* History */
+.history{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.history .tile .v{font-size:28px}
+
+/* Charts */
+.charts{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+.chart-box{overflow-x:auto}
+.chart-box svg{display:block;width:100%;height:auto;min-width:320px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted);margin-top:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:4px;display:block}
+.prize-rows{display:grid;gap:10px}
+.prow{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.prow .name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .track{height:16px;background:#0f0b26;position:relative}
+.prow .track i{position:absolute;inset:0 auto 0 0;background:var(--rc);min-width:2px}
+.prow .val{font-weight:800;color:var(--gold-hi);font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.jackpot{margin-top:16px;padding:14px;background:linear-gradient(135deg,#5a3a07,#2b1c55);border:1px solid var(--gold-deep);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.jackpot b{font-family:var(--display);font-size:30px;font-weight:400;color:var(--gold-hi)}
+
+/* Map */
+.map-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+.map-box{position:relative;background:var(--water-2);border:2px solid var(--gold-deep);aspect-ratio:1/1;max-width:100%}
+.map-box svg{width:100%;height:100%;display:block}
+.poi{cursor:pointer}
+.poi:focus{outline:none}
+.poi:focus-visible circle.ring,.poi.sel circle.ring{stroke:#fff;stroke-width:5}
+.poi text{font-family:var(--display);font-size:26px;fill:#fff;paint-order:stroke;stroke:#1a0f00;stroke-width:6px;letter-spacing:.03em}
+.route-path{fill:none;stroke:var(--gold-hi);stroke-width:8;stroke-dasharray:22 14;stroke-linecap:round;animation:march 1.2s linear infinite;filter:drop-shadow(0 0 6px rgba(255,233,163,.8))}
+@keyframes march{to{stroke-dashoffset:-36}}
+.layers{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.layers label{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);padding:6px 10px;font-weight:700;font-size:14px;cursor:pointer}
+.sw{width:12px;height:12px;display:inline-block}
+.routes{display:grid;gap:10px}
+.route{background:var(--panel);border:1px solid var(--line);padding:14px;display:grid;gap:8px;cursor:pointer;text-align:left;width:100%}
+.route[aria-pressed=true]{border-color:var(--gold);background:linear-gradient(135deg,#3d2a08,var(--panel) 60%)}
+.route .rt{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.route .rn{font-family:var(--display);font-size:19px;color:var(--gold)}
+.route .stops{font-size:14px;color:var(--muted)}
+.route .meta{display:flex;flex-wrap:wrap;gap:6px}
+.poi-info{margin-top:14px}
+.poi-info dl{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:8px 0 0;font-size:15px}
+.poi-info dd{margin:0;font-weight:800;color:var(--gold-hi);text-align:right}
+.tips{display:grid;gap:8px;margin:0;padding-left:20px;color:var(--muted)}
+.tips b{color:var(--ink)}
+.note{font-size:13px;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding-block:28px 40px;color:var(--muted);font-size:14px}
+footer ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+
+@media (max-width:980px){
+  .hero .wrap,.locker,.charts,.map-grid{grid-template-columns:minmax(0,1fr)}
+  .controls{position:static}
+}
+@media (max-width:520px){
+  .score{grid-template-columns:minmax(0,1fr)}
+  .chip .k{display:none}
+  .prow{grid-template-columns:minmax(0,1fr) auto}
+  .prow .track{grid-column:1/-1;grid-row:2}
+  .counter{grid-template-columns:1fr 1fr 1fr}
+  .counter input{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+
+<header class="hud">
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M6 20 Q24 6 42 20 V24 H6Z" fill="#c9871b" stroke="#3a2100" stroke-width="2"/>
+        <rect x="6" y="22" width="36" height="20" fill="#8a4f12" stroke="#3a2100" stroke-width="2"/>
+        <rect x="6" y="22" width="36" height="5" fill="#f7c948" stroke="#3a2100" stroke-width="2"/>
+        <rect x="20" y="24" width="8" height="10" fill="#ffe9a3" stroke="#3a2100" stroke-width="2"/>
+        <circle cx="24" cy="29" r="1.6" fill="#3a2100"/>
+        <path d="M10 14 l2-5 2 5 M34 12 l2-5 2 5" stroke="#ffe9a3" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div><b>Treasure Odds</b><small>Treasure Hunters chest calculator</small></div>
+    </div>
+    <div class="chip" id="chipTH"><span class="dot"></span><span class="k">Next Treasure Hour</span><span class="v num" id="thCountdown">…</span></div>
+    <div class="chip"><span class="k">Season ends</span><span class="v num" id="seasonCountdown">…</span></div>
+  </div>
+</header>
+
+<div class="hero">
+  <canvas id="coins" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Fortnite Chapter 7 · Treasure Hunters mini season</p>
+      <h1>Will you hit the treasure?<span>Your odds, chest by chest</span></h1>
+      <p class="lede">Every treasure rolls on every chest you open. Set how you play and this page works out your chance at <b>Pirate Shop Access</b>, the <b>weekly Gold Outfit</b> and every other drop before the season ends, using Epic's published odds and Treasure Hour boosts.</p>
+    </div>
+    <div class="score">
+      <div class="tile big"><div class="k">Pirate Shop Access by season end</div><div class="v num" id="hTok">…</div><div class="s" id="hTokS"></div></div>
+      <div class="tile"><div class="k">Expected prize value</div><div class="v num" id="hEV">…</div><div class="s">estimated, in US dollars</div></div>
+      <div class="tile"><div class="k">Chests left to open</div><div class="v num" id="hChests">…</div><div class="s" id="hChestsS"></div></div>
+      <div class="tile big" style="background:linear-gradient(135deg,#2b1c55,#1a1440)"><div class="k">Odds of getting everything</div><div class="v num" id="hAll" style="color:var(--ink)">…</div><div class="s">Pirate Shop Access plus every weekly treasure in every remaining week</div></div>
+    </div>
+  </div>
+</div>
+
+<main>
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">Your locker</p><h2>Drop odds, tuned to you</h2></div>
+      <p>Drag the sliders. Every card updates to show your chance of getting that treasure at least once between today and the end of the season.</p>
+    </div>
+    <div class="locker">
+      <aside class="panel controls" aria-label="Play settings">
+        <h3>How you play</h3>
+        <div class="ctl">
+          <label for="hours">Hours played per day <output id="hoursO" class="num"></output></label>
+          <input type="range" id="hours" min="0" max="16" step="0.5" value="3">
+        </div>
+        <div class="ctl">
+          <label for="gph">Games per hour <output id="gphO" class="num"></output></label>
+          <input type="range" id="gph" min="1" max="6" step="0.5" value="2.5">
+        </div>
+        <div class="ctl">
+          <label for="cpg">Chests per game <output id="cpgO" class="num"></output></label>
+          <input type="range" id="cpg" min="1" max="40" step="1" value="10">
+          <span class="hint">That's <b id="cphO" class="num"></b> chests per hour. Pick a route on the map to fill this in.</span>
+        </div>
+        <div class="divider"></div>
+        <h3>Treasure Hour</h3>
+        <div class="ctl">
+          <span class="hint">Epic boosts the rarest drops during Treasure Hours (so far Saturdays, 9–11 PM ET).</span>
+          <div class="seg" role="group" aria-label="Treasure Hour schedule">
+            <button type="button" data-th="sat" id="thSat">Saturdays only</button>
+            <button type="button" data-th="daily" id="thDaily">Every day (what if)</button>
+            <button type="button" data-th="off" id="thOff">Skip it</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label for="thHours">Hours played in each Treasure Hour <output id="thHoursO" class="num"></output></label>
+          <input type="range" id="thHours" min="0" max="2" step="0.25" value="2">
+        </div>
+        <div class="ctl">
+          <label for="preset">Boost size</label>
+          <select id="preset">
+            <option value="late">Nov 7, 9–11 PM ET (token 2×, gold 10×, vehicle 10×)</option>
+            <option value="early">Nov 7, first window (token 1.5×, gold 7.5×, vehicle 10×)</option>
+            <option value="custom">Custom boost</option>
+          </select>
+        </div>
+        <div class="ctl" id="customBox" hidden>
+          <label for="cTok">Pirate Shop Access boost <output id="cTokO" class="num"></output></label>
+          <input type="range" id="cTok" min="1" max="1000" step="1" value="2">
+          <label for="cGold">Gold Outfit boost <output id="cGoldO" class="num"></output></label>
+          <input type="range" id="cGold" min="1" max="100" step="0.5" value="10">
+          <span class="hint">A 1000× token boost has been rumored for a future event. Epic has not confirmed it.</span>
+        </div>
+        <div class="divider"></div>
+        <h3>Extras</h3>
+        <div class="ctl">
+          <label for="squad">Squad size <output id="squadO" class="num"></output></label>
+          <input type="range" id="squad" min="1" max="4" step="1" value="1">
+          <span class="hint">Reports say a Pirate Shop Access token found in a squad unlocks for the whole team, so teammates' chests count for you too.</span>
+        </div>
+        <div class="ctl">
+          <label for="haul">Shop items you'd claim with the token <output id="haulO" class="num"></output></label>
+          <input type="range" id="haul" min="5000" max="100000" step="1000" value="30000">
+        </div>
+        <div class="ctl">
+          <label for="end">Season end date</label>
+          <input type="date" id="end" value="2026-12-05">
+        </div>
+      </aside>
+
+      <div>
+        <div class="loot" id="loot"></div>
+
+        <div class="panel" style="margin-top:20px">
+          <div class="sec-head" style="margin-bottom:8px">
+            <div><p class="eyebrow">Chest log</p><h3 style="color:var(--gold)">Chests you've opened so far</h3></div>
+          </div>
+          <div class="counter">
+            <input type="number" id="opened" min="0" step="1" value="0" aria-label="Chests opened so far" class="num">
+            <button type="button" class="btn" data-add="1">+1</button>
+            <button type="button" class="btn" data-add="10">+10</button>
+            <button type="button" class="btn ghost" id="resetOpened">Reset</button>
+          </div>
+          <p class="note" style="margin-top:8px">Saved in this browser only. Tap +1 every time you open a chest in a match.</p>
+          <div class="history" id="history"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(180deg,transparent,rgba(26,20,64,.6))">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">Prize vault</p><h2>What your chests are worth</h2></div>
+      <p>Dollar figures convert V-Bucks at the 1,000 for $8.99 pack price. Treasures can't be bought, so these are estimates of comparable shop items.</p>
+    </div>
+    <div class="charts">
+      <div class="panel">
+        <h3 style="color:var(--gold)">Pirate Shop Access chance, day by day</h3>
+        <p class="note" style="margin-top:4px">Same hours and chests each day. Only the Treasure Hour plan changes.</p>
+        <div class="chart-box" id="lineChart"></div>
+        <div class="legend">
+          <span><i style="background:var(--gold)"></i>Your plan</span>
+          <span><i style="background:var(--r-epic)"></i>Treasure Hour every day</span>
+          <span><i style="background:var(--r-common)"></i>No Treasure Hour</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 style="color:var(--gold)">Expected value by treasure</h3>
+        <p class="note" style="margin:4px 0 14px">Chance of getting it × estimated value, summed across remaining weeks.</p>
+        <div class="prize-rows" id="prizeRows"></div>
+        <div class="jackpot"><span>Full jackpot if you got everything</span><b class="num" id="jackpot">…</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">Crossbones Isle</p><h2>Chest routes</h2></div>
+      <p>A schematic of the island's chest-heavy spots with community-counted spawns. Pick a route to draw it and load its chests-per-game into the calculator.</p>
+    </div>
+    <div class="map-grid">
+      <div>
+        <div class="layers" role="group" aria-label="Map layers">
+          <label><input type="checkbox" id="lStd" checked><span class="sw" style="background:var(--gold)"></span>Standard chests</label>
+          <label><input type="checkbox" id="lBur" checked><span class="sw" style="background:#a0622a"></span>Buried chests</label>
+          <label><input type="checkbox" id="lRare" checked><span class="sw" style="background:var(--r-epic)"></span>Rare chests</label>
+        </div>
+        <div class="map-box" id="mapBox"></div>
+        <p class="note" style="margin-top:8px">Positions are a simplified layout, not the in-game map. Dots show the number of chest spawn points per location, not exact spots. Not every spawn has a chest every match.</p>
+      </div>
+      <div>
+        <div class="routes" id="routes"></div>
+        <div class="panel poi-info" id="poiInfo"><p class="note">Tap a location on the map to see its chest counts.</p></div>
+        <div class="panel" style="margin-top:14px">
+          <h3 style="color:var(--gold);margin-bottom:8px">Farming tips</h3>
+          <ul class="tips">
+            <li><b>Play public matches.</b> Guides report the token does not drop in bot lobbies.</li>
+            <li><b>Save your best route for Treasure Hour.</b> Every chest in that window rolls boosted odds for the token, Gold Outfit and vehicle.</li>
+            <li><b>Squad up.</b> More players looting means more chests per match, and a token reportedly unlocks for the whole team.</li>
+            <li><b>Zero Build helps.</b> Less time building means more time moving between chests.</li>
+            <li><b>Skip "token tracker" apps.</b> No tool can see which chest holds a treasure.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b style="color:var(--ink)">Fan-made tool. Not affiliated with or endorsed by Epic Games or the One Piece rights holders.</b> Odds are Epic's per-chest rates posted by Fortnite Status on Nov 7, 2026. Weekly treasures are assumed to reset every 7 days from the Nov 1 season start. Chest counts come from community guides and vary between sources.</p>
+    <ul>
+      <li><a href="https://x.com/FortniteStatus/status/2119202610322227327" target="_blank" rel="noopener">Fortnite Status: treasure drop rates</a></li>
+      <li><a href="https://x.com/HYPEX/status/2119203171616854029" target="_blank" rel="noopener">HYPEX: full odds list</a></li>
+      <li><a href="https://timesaver.gg/blog/fortnite-treasure-hours" target="_blank" rel="noopener">Treasure Hours times and boosts</a></li>
+      <li><a href="https://beebom.com/when-does-fortnite-treasure-hunters-mini-season-end/" target="_blank" rel="noopener">Season end date</a></li>
+      <li><a href="https://www.playerauctions.com/fortnite-guide/tips-guides/treasure-hunters-all-free-chest-rewards/" target="_blank" rel="noopener">Chest counts by location</a> · <a href="https://www.ofzenandcomputing.com/all-fortnite-treasure-hunt-chest-locations-and-free-rewards/" target="_blank" rel="noopener">buried and rare chests</a></li>
+      <li><a href="https://gameriv.com/fortnite-pirate-shop-tokens-let-lucky-players-claim-free-cosmetics-for-14-days/" target="_blank" rel="noopener">What Pirate Shop Access unlocks</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const DAY = 86400000;
+const VB_USD = 8.99 / 1000;
+const SEASON_START = new Date(2026, 10, 1);
+
+const ICONS = {
+  token: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M10 15h4M8 18l8-0"/>',
+  outfit: '<circle cx="12" cy="6.5" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/><path d="M8 3.5l1.5 1 2.5-2 2.5 2 1.5-1"/>',
+  car: '<path d="M3 16v-3l2.5-5h13l2.5 5v3z"/><circle cx="7.5" cy="16.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/><path d="M7 11h10"/>',
+  pick: '<path d="M4 9c5-6 11-6 16-1"/><path d="M13 6.5L7 21"/>',
+  note: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  image: '<rect x="3" y="5" width="18" height="14"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
+  gear: '<circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>'
+};
+const RAR = {mythic:'Mythic', legendary:'Legendary', epic:'Epic', rare:'Rare', uncommon:'Uncommon', common:'Common'};
+
+const ITEMS = [
+  {id:'token', name:'Pirate Shop Access', sub:'14 days of free Item Shop claims. Drops once.', odds:137500, boost:'token', weekly:false, rarity:'mythic', icon:'token'},
+  {id:'gold', name:'Weekly Gold Outfit', sub:'A different gold skin each week.', odds:1562500, boost:'gold', weekly:true, vb:2000, rarity:'mythic', icon:'outfit'},
+  {id:'vehicle', name:'Weekly Vehicle & Decal', sub:'Car body plus a matching decal.', odds:7813, boost:'vehicle', weekly:true, vb:1500, rarity:'legendary', icon:'car'},
+  {id:'pickaxe', name:'Weekly Pickaxe or Back Bling', sub:'One cosmetic per week.', odds:568, weekly:true, vb:800, rarity:'epic', icon:'pick'},
+  {id:'jam', name:'Weekly Jam Track', sub:'Playable in Festival and the lobby.', odds:391, weekly:true, vb:500, rarity:'rare', icon:'note'},
+  {id:'loading', name:'Weekly Loading Screen', sub:'One new screen each week.', odds:272, weekly:true, vb:200, rarity:'uncommon', icon:'image'},
+  {id:'gizmo', name:'Gizmo (any)', sub:'In-match item. The only treasure that can repeat.', odds:127, weekly:false, repeat:true, vb:0, rarity:'common', icon:'gear'}
+];
+const PRESETS = {
+  early: {token:1.5, gold:7.5, vehicle:10},
+  late: {token:2, gold:10, vehicle:10}
+};
+
+// ---------- state ----------
+const DEFAULTS = {hours:3, gph:2.5, cpg:10, th:'sat', thHours:2, preset:'late', cTok:2, cGold:10, squad:1, haul:30000, end:'2026-12-05', opened:0};
+let S = Object.assign({}, DEFAULTS);
+try { const saved = JSON.parse(localStorage.getItem('treasureOdds') || 'null'); if (saved) S = Object.assign(S, saved); } catch (e) {}
+const save = () => { try { localStorage.setItem('treasureOdds', JSON.stringify(S)); } catch (e) {} };
+
+const $ = id => document.getElementById(id);
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const usd = n => n >= 1000 ? '$' + fmtInt(n) : '$' + n.toFixed(2);
+
+function pct(p) {
+  if (!isFinite(p) || p <= 0) return '0%';
+  if (p >= 0.9995) return '>99.9%';
+  if (p >= 0.1) return (p * 100).toFixed(1) + '%';
+  if (p >= 0.01) return (p * 100).toFixed(2) + '%';
+  if (p >= 0.0001) return (p * 100).toFixed(3) + '%';
+  return '1 in ' + fmtInt(1 / p);
+}
+function oneIn(p) {
+  if (!isFinite(p) || p <= 0) return 'no chance';
+  if (p >= 0.5) return 'better than a coin flip';
+  return '1 in ' + fmtInt(1 / p);
+}
+function oneInLog(log10p) {
+  if (!isFinite(log10p)) return 'No chance';
+  if (log10p > -6) return '1 in ' + fmtInt(Math.pow(10, -log10p));
+  const e = Math.floor(-log10p);
+  const m = Math.pow(10, -log10p - e);
+  return '1 in ' + m.toFixed(1) + '×10<sup>' + e + '</sup>';
+}
+
+function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function parseEnd() {
+  const [y, m, d] = (S.end || DEFAULTS.end).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+function mult(item) {
+  if (!item.boost) return 1;
+  if (S.preset === 'custom') return item.boost === 'token' ? S.cTok : item.boost === 'gold' ? S.cGold : 10;
+  return PRESETS[S.preset][item.boost] || 1;
+}
+
+// Day-by-day plan: normal chests (n) and boosted chests (b), grouped into treasure weeks.
+function plan(mode) {
+  const cph = S.gph * S.cpg;
+  const days = [];
+  const end = parseEnd();
+  for (let d = startOfDay(new Date()); d < end; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+    const thDay = mode === 'daily' || (mode === 'sat' && d.getDay() === 6);
+    const th = thDay ? Math.min(S.thHours, S.hours) : 0;
+    const dayIdx = Math.round((d - SEASON_START) / DAY);
+    days.push({date: d, n: (S.hours - th) * cph, b: th * cph, week: Math.floor(dayIdx / 7)});
+  }
+  return days;
+}
+const logMiss = (n, b, p, m) => n * Math.log1p(-p) + b * Math.log1p(-Math.min(p * m, 0.999999));
+
+function compute(mode) {
+  const days = plan(mode);
+  const weeks = new Map();
+  let N = 0, B = 0;
+  for (const d of days) {
+    N += d.n; B += d.b;
+    const w = weeks.get(d.week) || {n:0, b:0};
+    w.n += d.n; w.b += d.b; weeks.set(d.week, w);
+  }
+  const res = {days, N, B, weeks: weeks.size, items: {}};
+  let log10All = 0, ev = 0;
+  for (const it of ITEMS) {
+    const p = 1 / it.odds, m = mult(it);
+    const r = {p, m};
+    if (it.weekly) {
+      let lmSum = 0, l10 = 0, e = 0;
+      for (const w of weeks.values()) {
+        const lm = logMiss(w.n, w.b, p, m);
+        const pw = -Math.expm1(lm);
+        lmSum += lm; e += pw * it.vb * VB_USD;
+        l10 += pw > 0 ? Math.log10(pw) : -Infinity;
+      }
+      r.any = -Math.expm1(lmSum);
+      r.allLog10 = weeks.size ? l10 : -Infinity;
+      r.ev = e;
+      r.expected = N * p + B * p * m;
+      log10All += r.allLog10;
+    } else if (it.id === 'token') {
+      const lm = logMiss(N * S.squad, B * S.squad, p, m);
+      r.any = -Math.expm1(lm);
+      r.ev = r.any * S.haul * VB_USD;
+      log10All += r.any > 0 ? Math.log10(r.any) : -Infinity;
+      // cumulative by day
+      let acc = 0; r.series = days.map(d => { acc += logMiss(d.n * S.squad, d.b * S.squad, p, m); return -Math.expm1(acc); });
+    } else {
+      const lm = logMiss(N, B, p, m);
+      r.any = -Math.expm1(lm);
+      r.expected = N * p + B * p * m;
+      r.ev = 0;
+      log10All += r.any > 0 ? Math.log10(r.any) : -Infinity;
+    }
+    res.items[it.id] = r;
+    ev += r.ev;
+  }
+  res.log10All = log10All;
+  res.ev = ev;
+  return res;
+}
+
+// ---------- loot cards ----------
+const loot = $('loot');
+loot.innerHTML = ITEMS.map(it => `
+  <article class="card" style="--rc:var(--r-${it.rarity})" id="card-${it.id}">
+    <div class="top">
+      <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[it.icon]}</svg></div>
+      <div style="min-width:0"><div class="rar">${RAR[it.rarity]}</div><h3>${it.name}</h3></div>
+    </div>
+    <p class="sub">${it.sub}</p>
+    <div class="odds"><span class="pill num">1 in ${fmtInt(it.odds)} per chest</span><span class="pill" data-boost></span></div>
+    <div class="chance"><span class="big num" data-chance>…</span><span class="lbl" data-lbl>by season end</span></div>
+    <div class="bar"><i data-bar></i></div>
+    <dl class="facts" data-facts></dl>
+  </article>`).join('');
+
+function hoursFmt(h) {
+  if (!isFinite(h)) return '—';
+  if (h < 1) return Math.round(h * 60) + ' min';
+  if (h < 48) return h.toFixed(1) + ' hrs';
+  return fmtInt(h) + ' hrs';
+}
+
+function renderCards(R) {
+  const cph = S.gph * S.cpg;
+  for (const it of ITEMS) {
+    const r = R.items[it.id], card = $('card-' + it.id);
+    const boost = card.querySelector('[data-boost]');
+    if (it.boost && S.th !== 'off') { boost.textContent = r.m + '× in Treasure Hour'; boost.className = 'pill boost'; }
+    else if (it.boost) { boost.textContent = 'Treasure Hour skipped'; boost.className = 'pill'; }
+    else { boost.textContent = 'No Treasure Hour boost'; boost.className = 'pill'; }
+    card.querySelector('[data-chance]').textContent = pct(r.any);
+    card.querySelector('[data-lbl]').textContent = it.weekly ? 'at least one week' : it.repeat ? 'at least one' : 'by season end';
+    card.querySelector('[data-bar]').style.width = Math.min(100, r.any * 100) + '%';
+    const n50 = Math.log(0.5) / Math.log1p(-r.p);
+    const n50b = Math.log(0.5) / Math.log1p(-Math.min(r.p * r.m, 0.999999));
+    let facts = `<dt>Chests for a 50% shot</dt><dd>${fmtInt(n50)}</dd><dt>Time at your pace</dt><dd>${cph ? hoursFmt(n50 / cph) : '—'}</dd>`;
+    if (it.boost) facts += `<dt>Chests at boosted odds</dt><dd>${fmtInt(n50b)}</dd>`;
+    if (it.weekly) facts += `<dt>Every weekly version (${R.weeks} wks)</dt><dd>${oneInLog(r.allLog10).replace('1 in ', '1 in ')}</dd><dt>Expected drops</dt><dd>${r.expected < 10 ? r.expected.toFixed(2) : fmtInt(r.expected)}</dd>`;
+    if (it.repeat) facts += `<dt>Expected Gizmos</dt><dd>${fmtInt(r.expected)}</dd>`;
+    if (it.id === 'token') facts += `<dt>Est. shop haul</dt><dd>${usd(S.haul * VB_USD)}</dd>`;
+    else if (it.vb) facts += `<dt>Est. value</dt><dd>${usd(it.vb * VB_USD)}</dd>`;
+    card.querySelector('[data-facts]').innerHTML = facts;
+  }
+}
+
+function renderHero(R) {
+  const tok = R.items.token;
+  $('hTok').textContent = pct(tok.any);
+  $('hTokS').textContent = tok.any > 0 ? oneIn(tok.any) + (S.squad > 1 ? ', counting your squad\'s chests' : '') : 'Add some playtime to get a chance';
+  $('hEV').textContent = usd(R.ev);
+  const total = R.N + R.B;
+  $('hChests').textContent = fmtInt(total);
+  $('hChestsS').textContent = fmtInt(R.B) + ' at Treasure Hour odds · ' + R.days.length + ' days left';
+  $('hAll').innerHTML = oneInLog(R.log10All);
+}
+
+function renderHistory() {
+  const n = S.opened;
+  const tiles = [
+    ['Chests logged', fmtInt(n), 'opened so far'],
+    ['Gizmos expected', (n / 127).toFixed(1), 'from those chests'],
+    ['Loading Screen odds', pct(-Math.expm1(n * Math.log1p(-1 / 272))), 'chance of at least one by now'],
+    ['Pirate token odds', pct(-Math.expm1(n * Math.log1p(-1 / 137500))), 'chance you\'d have hit it by now']
+  ];
+  $('history').innerHTML = tiles.map(t => `<div class="tile"><div class="k">${t[0]}</div><div class="v num">${t[1]}</div><div class="s">${t[2]}</div></div>`).join('');
+}
+
+// ---------- charts ----------
+function niceMax(v) {
+  if (v <= 0) return 0.01;
+  const e = Math.pow(10, Math.floor(Math.log10(v)));
+  for (const k of [1, 2, 2.5, 5, 10]) if (k * e >= v) return k * e;
+  return 10 * e;
+}
+function renderLine(R, Rd, Ro) {
+  const W = 640, H = 280, L = 56, Rt = 16, T = 16, Bm = 40;
+  const a = R.items.token.series, b = Rd.items.token.series, c = Ro.items.token.series;
+  const n = a.length;
+  const box = $('lineChart');
+  if (!n) { box.innerHTML = '<p class="note" style="padding:20px 0">The season end date has passed. Pick a later date.</p>'; return; }
+  const ymax = Math.min(1, niceMax(Math.max(a[n - 1], b[n - 1], c[n - 1], 1e-6)));
+  const x = i => L + (n === 1 ? 0 : i / (n - 1)) * (W - L - Rt);
+  const y = v => T + (1 - v / ymax) * (H - T - Bm);
+  const path = s => s.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join('');
+  let g = '';
+  for (let k = 0; k <= 4; k++) {
+    const v = ymax * k / 4, yy = y(v);
+    g += `<line x1="${L}" x2="${W - Rt}" y1="${yy}" y2="${yy}" stroke="rgba(247,201,72,.12)"/>`;
+    g += `<text x="${L - 8}" y="${yy + 4}" text-anchor="end" fill="#b3a8d6" font-size="12">${(v * 100).toFixed(v * 100 < 1 ? 2 : v * 100 < 10 ? 1 : 0)}%</text>`;
+  }
+  const step = Math.max(1, Math.ceil(n / 6));
+  for (let i = 0; i < n; i += step) {
+    const d = R.days[i].date;
+    g += `<text x="${x(i)}" y="${H - 14}" text-anchor="middle" fill="#b3a8d6" font-size="12">${d.toLocaleDateString('en-US', {month:'short', day:'numeric'})}</text>`;
+  }
+  // Saturdays
+  R.days.forEach((d, i) => { if (d.date.getDay() === 6) g += `<rect x="${x(i) - 3}" y="${T}" width="6" height="${H - T - Bm}" fill="rgba(247,201,72,.08)"/>`; });
+  const area = path(a) + `L${x(n - 1)} ${y(0)}L${x(0)} ${y(0)}Z`;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cumulative chance of Pirate Shop Access by day">
+    <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7c948" stop-opacity=".35"/><stop offset="1" stop-color="#f7c948" stop-opacity="0"/></linearGradient></defs>
+    ${g}
+    <path d="${area}" fill="url(#ga)"/>
+    <path d="${path(c)}" fill="none" stroke="#9ea6bb" stroke-width="2" stroke-dasharray="5 5"/>
+    <path d="${path(b)}" fill="none" stroke="#b866f2" stroke-width="2.5"/>
+    <path d="${path(a)}" fill="none" stroke="#f7c948" stroke-width="3.5"/>
+    <circle cx="${x(n - 1)}" cy="${y(a[n - 1])}" r="6" fill="#ffe9a3" stroke="#6b3d05" stroke-width="2"/>
+    <text x="${x(n - 1) - 10}" y="${Math.max(T + 12, y(a[n - 1]) - 12)}" text-anchor="end" fill="#ffe9a3" font-size="14" font-weight="800">${pct(a[n - 1])}</text>
+  </svg>`;
+}
+
+function renderPrizes(R) {
+  const rows = ITEMS.filter(it => it.id !== 'gizmo').map(it => ({it, v: R.items[it.id].ev}));
+  const max = Math.max(...rows.map(r => r.v), 0.01);
+  $('prizeRows').innerHTML = rows.map(({it, v}) => `
+    <div class="prow" style="--rc:var(--r-${it.rarity})">
+      <span class="name">${it.name.replace('Weekly ', '')}</span>
+      <span class="track"><i style="width:${(v / max * 100).toFixed(1)}%"></i></span>
+      <span class="val">${usd(v)}</span>
+    </div>`).join('');
+  const weeklyMax = ITEMS.filter(i => i.weekly).reduce((s, i) => s + i.vb, 0) * R.weeks * VB_USD;
+  $('jackpot').textContent = usd(weeklyMax + S.haul * VB_USD);
+}
+
+// ---------- controls ----------
+const ranges = {
+  hours: v => v + ' h',
+  gph: v => v,
+  cpg: v => v,
+  thHours: v => v + ' h',
+  cTok: v => v + '×',
+  cGold: v => v + '×',
+  squad: v => v === 1 ? 'Solo' : v === 2 ? 'Duo' : v === 3 ? 'Trio' : 'Squad',
+  haul: v => fmtInt(v) + ' V'
+};
+function paintRange(el) {
+  const f = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--fill', f + '%');
+}
+for (const id of Object.keys(ranges)) {
+  const el = $(id);
+  el.value = S[id];
+  el.addEventListener('input', () => { S[id] = parseFloat(el.value); update(); });
+}
+document.querySelectorAll('[data-th]').forEach(b => b.addEventListener('click', () => { S.th = b.dataset.th; update(); }));
+$('preset').value = S.preset;
+$('preset').addEventListener('change', e => { S.preset = e.target.value; update(); });
+$('end').value = S.end;
+$('end').addEventListener('change', e => { if (e.target.value) { S.end = e.target.value; update(); } });
+$('opened').value = S.opened;
+$('opened').addEventListener('input', e => { S.opened = Math.max(0, parseInt(e.target.value, 10) || 0); renderHistory(); save(); });
+document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { S.opened += +b.dataset.add; $('opened').value = S.opened; renderHistory(); save(); }));
+$('resetOpened').addEventListener('click', () => { S.opened = 0; $('opened').value = 0; renderHistory(); save(); });
+
+function update() {
+  for (const id of Object.keys(ranges)) {
+    const el = $(id);
+    if (+el.value !== +S[id]) el.value = S[id];
+    paintRange(el);
+    $(id + 'O').textContent = ranges[id](S[id]);
+  }
+  $('cphO').textContent = fmtInt(S.gph * S.cpg);
+  document.querySelectorAll('[data-th]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.th === S.th)));
+  $('customBox').hidden = S.preset !== 'custom';
+  $('thHours').disabled = S.th === 'off';
+  const R = compute(S.th), Rd = compute('daily'), Ro = compute('off');
+  renderHero(R); renderCards(R); renderLine(R, Rd, Ro); renderPrizes(R); renderHistory();
+  document.querySelectorAll('.route').forEach(r => r.setAttribute('aria-pressed', String(r.dataset.id === activeRoute)));
+  save();
+}
+
+// ---------- countdowns ----------
+function dhm(ms) {
+  const m = Math.max(0, Math.floor(ms / 60000));
+  const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+  return d ? `${d}d ${h}h ${mm}m` : `${h}h ${mm}m`;
+}
+function tick() {
+  const now = Date.now();
+  // Saturday 9 PM ET (EST, UTC-5 after Nov 1) = Sunday 02:00 UTC, lasting 2 hours.
+  const t = new Date(now);
+  let c = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate(), 2);
+  while (new Date(c).getUTCDay() !== 0 || c + 2 * 3600000 <= now) c += DAY;
+  const chip = $('chipTH');
+  if (now >= c) { chip.classList.add('live'); $('thCountdown').textContent = 'LIVE · ends in ' + dhm(c + 7200000 - now); }
+  else { chip.classList.remove('live'); $('thCountdown').textContent = 'Sat 9 PM ET · ' + dhm(c - now); }
+  const end = parseEnd().getTime();
+  $('seasonCountdown').textContent = end > now ? dhm(end - now) : 'Ended';
+}
+
+// ---------- map ----------
+const POIS = [
+  {id:'windmill', name:'Windmill Village', x:380, y:200, std:null, bur:null, rare:null},
+  {id:'fortune', name:"Fortune's Fort", x:585, y:285, std:47, bur:null, rare:5},
+  {id:'chest', name:'The Chest', x:800, y:330, std:10, bur:34, rare:0},
+  {id:'neisle', name:'NE Islet', x:885, y:130, std:null, bur:11, rare:null},
+  {id:'arlong', name:'Arlong Park', x:225, y:340, std:39, bur:2, rare:0},
+  {id:'logue', name:'Loguetown', x:450, y:470, std:41, bur:null, rare:4},
+  {id:'plunder', name:'Plunder Port', x:150, y:560, std:null, bur:null, rare:0},
+  {id:'rubber', name:'Rubber Resort', x:305, y:690, std:47, bur:2, rare:6},
+  {id:'lantern', name:'Lantern Landing', x:715, y:560, std:45, bur:null, rare:4},
+  {id:'cursed', name:'Cursed Cavern', x:630, y:780, std:28, bur:4, rare:0},
+  {id:'busy', name:'Busy Bay', x:455, y:850, std:null, bur:null, rare:null}
+];
+const ROUTES = [
+  {id:'max', name:'Max chests', stops:['fortune', 'logue', 'rubber'], cpg:18, spawns:135, note:'Three of the densest POIs in a north-to-south line. Expect fights at Rubber Resort.'},
+  {id:'rare', name:'Rare-chest hunter', stops:['rubber', 'logue', 'lantern'], cpg:14, spawns:133, note:'Hits the most rare-chest spawns (6 + 4 + 4, plus the Frog Statue puzzle at Lantern Landing).'},
+  {id:'buried', name:'Buried sweep', stops:['neisle', 'chest', 'lantern'], cpg:15, spawns:45, note:'45 buried spawns between The Chest and the NE islet. Quieter, slower to dig.'},
+  {id:'quiet', name:'Low-traffic loop', stops:['cursed', 'busy', 'rubber'], cpg:11, spawns:75, note:'Starts at Cursed Cavern on the south coast and works west. Fewer early fights.'}
+];
+let activeRoute = null;
+const byId = Object.fromEntries(POIS.map(p => [p.id, p]));
+
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function buildMap() {
+  const r = rng(42);
+  let dots = {std:'', bur:'', rare:''};
+  POIS.forEach((p, i) => {
+    const kinds = [['std', p.std ?? 14, '#f7c948', 46], ['bur', p.bur ?? 0, '#a0622a', 70], ['rare', p.rare ?? 0, '#b866f2', 36]];
+    for (const [k, count, fill, rad] of kinds) {
+      for (let j = 0; j < count; j++) {
+        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * rad + 8;
+        const x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d;
+        dots[k] += k === 'rare'
+          ? `<rect x="${(x - 5).toFixed(1)}" y="${(y - 5).toFixed(1)}" width="10" height="10" fill="${fill}" stroke="#1a0f00" stroke-width="1.5" transform="rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})"/>`
+          : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${k === 'bur' ? 4.5 : 4}" fill="${fill}" stroke="#1a0f00" stroke-width="1.2" ${p.std == null && k === 'std' ? 'opacity=".45"' : ''}/>`;
+      }
+    }
+  });
+  const pois = POIS.map(p => `
+    <g class="poi" tabindex="0" role="button" aria-label="${p.name}" data-poi="${p.id}">
+      <circle class="ring" cx="${p.x}" cy="${p.y}" r="16" fill="#1a0f00" stroke="#f7c948" stroke-width="4"/>
+      <circle cx="${p.x}" cy="${p.y}" r="7" fill="#ffe9a3"/>
+      <text x="${p.x}" y="${p.y - 26}" text-anchor="middle">${p.name}</text>
+    </g>`).join('');
+  $('mapBox').innerHTML = `<svg viewBox="0 0 1000 1000" role="img" aria-label="Schematic map of Crossbones Isle with chest spawns">
+    <defs>
+      <pattern id="waves" width="60" height="30" patternUnits="userSpaceOnUse"><path d="M0 15 Q15 5 30 15 T60 15" fill="none" stroke="#1b4b85" stroke-width="2"/></pattern>
+      <radialGradient id="land" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#4fae5a"/><stop offset="1" stop-color="#2f7d3d"/></radialGradient>
+    </defs>
+    <rect width="1000" height="1000" fill="#123a6b"/>
+    <rect width="1000" height="1000" fill="url(#waves)"/>
+    <path d="M150 260 C230 120 430 110 560 150 C700 190 820 210 870 330 C930 470 860 600 820 700 C770 830 640 920 470 920 C320 920 170 850 110 720 C60 600 70 400 150 260Z" fill="#e9cf8a"/>
+    <path d="M175 280 C250 150 430 140 560 175 C690 210 800 235 845 340 C900 470 835 595 795 690 C750 810 630 893 470 893 C330 893 195 828 138 710 C92 600 102 410 175 280Z" fill="url(#land)"/>
+    <path d="M520 330 C600 360 640 420 620 480 C600 540 520 560 470 540" fill="none" stroke="#5fa8d8" stroke-width="16" stroke-linecap="round"/>
+    <path d="M260 480 C320 520 380 520 420 600" fill="none" stroke="#5fa8d8" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="660" cy="680" rx="70" ry="45" fill="#3d6b3f"/>
+    <ellipse cx="350" cy="320" rx="60" ry="40" fill="#3d6b3f"/>
+    <ellipse cx="885" cy="135" rx="58" ry="40" fill="#e9cf8a"/><ellipse cx="885" cy="135" rx="46" ry="30" fill="#4fae5a"/>
+    <g id="mStd">${dots.std}</g><g id="mBur">${dots.bur}</g><g id="mRare">${dots.rare}</g>
+    <path id="routePath" class="route-path" d=""/>
+    ${pois}
+    <g transform="translate(70 900)"><circle r="34" fill="#1a0f00" stroke="#f7c948" stroke-width="3"/><path d="M0 -26 L8 0 L0 26 L-8 0Z" fill="#f7c948"/><text y="-38" text-anchor="middle" fill="#f7c948" font-size="20" font-family="Luckiest Guy, Impact, sans-serif">N</text></g>
+  </svg>`;
+  document.querySelectorAll('.poi').forEach(g => {
+    const pick = () => selectPoi(g.dataset.poi);
+    g.addEventListener('click', pick);
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  });
+  [['lStd', 'mStd'], ['lBur', 'mBur'], ['lRare', 'mRare']].forEach(([c, g]) => $(c).addEventListener('change', e => { $(g).style.display = e.target.checked ? '' : 'none'; }));
+}
+const cnt = v => v == null ? '—' : v;
+function selectPoi(id) {
+  const p = byId[id];
+  document.querySelectorAll('.poi').forEach(g => g.classList.toggle('sel', g.dataset.poi === id));
+  const total = (p.std || 0) + (p.bur || 0) + (p.rare || 0);
+  $('poiInfo').innerHTML = `<h3 style="color:var(--gold)">${p.name}</h3>
+    <dl><dt>Standard chest spawns</dt><dd>${cnt(p.std)}</dd><dt>Buried chest spawns</dt><dd>${cnt(p.bur)}</dd><dt>Rare chest spawns</dt><dd>${cnt(p.rare)}</dd><dt>Known total</dt><dd>${total || '—'}</dd></dl>
+    <p class="note" style="margin-top:8px">${p.std == null ? 'No reliable count published yet. Faded dots are placeholders.' : 'Counts from community guides; sources disagree by a few chests.'}</p>`;
+}
+function renderRoutes() {
+  $('routes').innerHTML = ROUTES.map(r => `
+    <button type="button" class="route" data-id="${r.id}" aria-pressed="false">
+      <span class="rt"><span class="rn">${r.name}</span><span class="pill num">~${r.cpg} chests/game</span></span>
+      <span class="stops">${r.stops.map(s => byId[s].name).join(' → ')}</span>
+      <span class="note">${r.note}</span>
+      <span class="meta"><span class="pill num">${r.spawns} known spawns</span><span class="pill">${hoursFmt(137500 * Math.log(2) / (r.cpg * S.gph))} for a 50% token shot</span></span>
+    </button>`).join('');
+  document.querySelectorAll('.route').forEach(b => b.addEventListener('click', () => {
+    const r = ROUTES.find(x => x.id === b.dataset.id);
+    activeRoute = r.id;
+    S.cpg = r.cpg;
+    const pts = r.stops.map(s => byId[s]);
+    $('routePath').setAttribute('d', pts.map((p, i) => (i ? 'L' : 'M') + p.x + ' ' + p.y).join(' '));
+    selectPoi(r.stops[0]);
+    update();
+  }));
+}
+
+// ---------- coin canvas ----------
+function coins() {
+  const cv = $('coins'); const ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, list = [];
+  const resize = () => { const r = cv.getBoundingClientRect(); W = cv.width = r.width * devicePixelRatio; H = cv.height = r.height * devicePixelRatio; };
+  resize(); addEventListener('resize', resize);
+  const rr = rng(7);
+  for (let i = 0; i < 38; i++) list.push({x: rr(), y: rr(), s: 6 + rr() * 12, v: .0006 + rr() * .0012, ph: rr() * 6.28});
+  const draw = t => {
+    ctx.clearRect(0, 0, W, H);
+    for (const c of list) {
+      const y = ((c.y + (reduce ? 0 : t * c.v * .06)) % 1.1) - .05;
+      const sx = Math.abs(Math.cos(c.ph + (reduce ? 0 : t * .002))) * c.s * devicePixelRatio, sy = c.s * devicePixelRatio;
+      ctx.save(); ctx.translate(c.x * W, y * H);
+      ctx.beginPath(); ctx.ellipse(0, 0, Math.max(1, sx), sy, 0, 0, Math.PI * 2);
+      const g = ctx.createLinearGradient(-sx, -sy, sx, sy); g.addColorStop(0, '#ffe9a3'); g.addColorStop(1, '#c9871b');
+      ctx.fillStyle = g; ctx.globalAlpha = .7; ctx.fill(); ctx.restore();
+    }
+    if (!reduce) requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+}
+
+buildMap();
+renderRoutes();
+update();
+tick(); setInterval(tick, 30000);
+coins();
+})();
+</script>
+
+</html>

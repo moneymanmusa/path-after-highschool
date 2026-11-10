@@ -1,5 +1,7 @@
 # Fortnite Treasure Drop Rates
 
+Made by Money Man Musa.
+
 A fan-made, single-page calculator for the Fortnite Chapter 7 **Treasure Hunters** (One Piece) chest treasures.
 
 Open `index.html` in a browser. No build step.
@@ -9,8 +11,10 @@ Open `index.html` in a browser. No build step.
 - Sliders for hours per day, games per hour, chests per game, Treasure Hour hours, boost size, squad size.
 - Treasure Hour modes: Saturdays only (current schedule), every day (what-if), or skipped.
 - Chance of each treasure by the season end date (default Dec 5, 2026), chance of every weekly version, and the odds of getting everything.
-- Estimated dollar value of expected drops (V-Bucks at $8.99 per 1,000).
+- Estimated dollar value of expected drops. Pirate Shop Access is valued as two weeks of new Item Shop items (day-one shop + 13 daily resets of new items × average price), converted at the current V-Bucks pack price (800 for $8.99 by default).
+- Vault option: adds 3 Rare Chests per vault opened per game.
 - Chest log counter saved in the browser.
+- Zoomable, illustrated fan map (scroll/pinch/drag) with chest spawns, vaults, and numbered routes. Picking a route sets chests per game.
 - Schematic island map with community chest counts per location and suggested chest routes.
 
 ## Assumptions

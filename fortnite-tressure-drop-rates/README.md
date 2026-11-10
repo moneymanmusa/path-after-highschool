@@ -1,6 +1,6 @@
 # Fortnite Treasure Drop Rates
 
-Made by Money Man Musa.
+Made by Money Man Musa (FN User: progamer987612).
 
 A fan-made, single-page calculator for the Fortnite Chapter 7 **Treasure Hunters** (One Piece) chest treasures.
 

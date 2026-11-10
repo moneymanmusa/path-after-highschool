@@ -288,3 +288,5 @@ details.filters summary::-webkit-details-marker { display: none; }
 .check input { width: 20px; height: 20px; flex: none; margin-top: 2px; accent-color: var(--accent); }
 .danger { color: var(--no); }
 .legal h2 { margin-top: 20px; }
+/* keep content behind the sticky bars from showing through */
+.tray, .bottom-nav, .site-header { -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }

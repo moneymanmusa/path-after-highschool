@@ -181,7 +181,7 @@
             <div class="tray-count" id="count"></div>
             <div class="chips" id="chips"></div>
           </div>
-          <button id="go" class="btn primary">See programs</button>
+          <button id="go" class="btn primary">Program choices you have</button>
         </div>
       </div>`;
 
